@@ -25,6 +25,104 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+### 🏗️ Architecture Overview
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        WEB[Web Apps]
+        MOB[Mobile Apps]
+        API[External APIs]
+    end
+
+    subgraph "API Gateway - v1"
+        ROUTES["/api/v1/*"]
+        MW[Middleware Stack]
+    end
+
+    subgraph "Modules"
+        AUTH[Auth Module<br/>JWT, Sessions]
+        USER[User Module<br/>CRUD, Profile]
+        ROLE[Role Module<br/>RBAC, Hierarchy]
+        PERM[Permission Module<br/>Context-aware, Inheritance]
+        AUDIT[Audit Module<br/>Logging, Analytics]
+        HEALTH[Health Module<br/>Status, Monitoring]
+    end
+
+    subgraph "Core Services"
+        JWT[JWT Service]
+        HASH[Hash Service]
+        VALIDATOR[Validator Service]
+        STORAGE[Storage Service]
+    end
+
+    subgraph "Data Layer"
+        TS[(TimescaleDB<br/>Main Database + Time-series)]
+        PGREST[PostgREST<br/>Auto-generated REST API]
+    end
+
+    WEB --> ROUTES
+    MOB --> ROUTES
+    API --> ROUTES
+
+    ROUTES --> MW
+    MW --> AUTH
+    MW --> USER
+    MW --> ROLE
+    MW --> PERM
+    MW --> AUDIT
+    MW --> HEALTH
+
+    AUTH --> JWT
+    AUTH --> HASH
+    USER --> VALIDATOR
+    AUDIT --> TS
+
+    USER --> TS
+    ROLE --> TS
+    PERM --> TS
+    AUTH --> TS
+    AUDIT --> TS
+
+    TS --> PGREST
+
+    style ROUTES fill:#4A90E2
+    style TS fill:#336791
+    style REDIS fill:#DC382D
+    style PGREST fill:#008080
+```
+
+### 🔐 Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant API as API Gateway
+    participant AUTH as Auth Module
+    participant JWT as JWT Service
+    participant DB as TimescaleDB
+    participant REDIS as Redis Cache
+
+    C->>API: POST /api/v1/sessions/sign-in
+    API->>AUTH: Validate credentials
+    AUTH->>DB: Find user by email
+    DB-->>AUTH: User data
+    AUTH->>AUTH: Verify password hash
+    AUTH->>JWT: Generate tokens
+    JWT-->>AUTH: Access & Refresh tokens
+    AUTH->>REDIS: Store session
+    AUTH-->>C: Return tokens + user data
+
+    Note over C,API: Subsequent requests
+
+    C->>API: GET /api/v1/users (Bearer token)
+    API->>AUTH: Validate JWT
+    AUTH->>REDIS: Check session
+    REDIS-->>AUTH: Session valid
+    AUTH-->>API: User authenticated
+    API-->>C: Return protected resource
+```
+
 ## Project setup
 
 ```bash
