@@ -1,28 +1,14 @@
 import { Injectable } from '@nestjs/common';
-import { DatabaseService } from '../../../../shared/infra/database/database.service';
-
-export interface User {
-  id: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface CreateUserDto {
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-}
+import { DataSource } from 'typeorm';
+import { User } from '../../domain/user.model';
+import {
+  IUserRepository,
+  CreateUserDto,
+} from '../../presentation/interface/user.interface';
 
 @Injectable()
-export class UserRepository {
-  constructor(private readonly databaseService: DatabaseService) { }
+export class UserRepository implements IUserRepository {
+  constructor(private dataSource: DataSource) {}
 
   async findByEmail(email: string): Promise<User | null> {
     const query = `
@@ -31,8 +17,8 @@ export class UserRepository {
       WHERE email = $1
     `;
 
-    const result = await this.databaseService.query(query, [email]);
-    return result.rows[0] || null;
+    const result = await this.dataSource.query(query, [email]);
+    return result[0] || null;
   }
 
   async findById(id: string): Promise<User | null> {
@@ -42,8 +28,8 @@ export class UserRepository {
       WHERE id = $1
     `;
 
-    const result = await this.databaseService.query(query, [id]);
-    return result.rows[0] || null;
+    const result = await this.dataSource.query(query, [id]);
+    return result[0] || null;
   }
 
   async create(userData: CreateUserDto): Promise<User> {
@@ -61,16 +47,16 @@ export class UserRepository {
       userData.phone,
     ];
 
-    const result = await this.databaseService.query(query, values);
-    return result.rows[0];
+    const result = await this.dataSource.query(query, values);
+    return result[0];
   }
 
   async update(
     id: string,
     userData: Partial<CreateUserDto>,
   ): Promise<User | null> {
-    const fields = [];
-    const values = [];
+    const fields: string[] = [];
+    const values: any[] = [];
     let paramCount = 1;
 
     if (userData.email) {
@@ -108,13 +94,13 @@ export class UserRepository {
       RETURNING id, email, password, first_name, last_name, phone, created_at, updated_at
     `;
 
-    const result = await this.databaseService.query(query, values);
-    return result.rows[0] || null;
+    const result = await this.dataSource.query(query, values);
+    return result[0] || null;
   }
 
   async delete(id: string): Promise<boolean> {
     const query = `DELETE FROM users WHERE id = $1`;
-    const result = await this.databaseService.query(query, [id]);
-    return result.rowCount > 0;
+    const result = await this.dataSource.query(query, [id]);
+    return result.length > 0;
   }
 }
