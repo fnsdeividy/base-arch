@@ -13,8 +13,9 @@ import { AuthModule } from './modules/auth/auth.module';
 // Serviços compartilhados
 import { JwtService } from './shared/core/services/jwt.service';
 import { HashService } from './shared/core/services/hash.service';
-import { BaseRepository } from './shared/infra/repository/baseRepository';
 
+// Entities
+import { User } from './modules/auth/domain/user.model';
 
 @Module({
   imports: [
@@ -28,7 +29,7 @@ import { BaseRepository } from './shared/infra/repository/baseRepository';
       database: process.env.DB_NAME || 'base_backend',
       username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'password',
-      entities: [],
+      entities: [User],
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
     }),
@@ -39,6 +40,6 @@ import { BaseRepository } from './shared/infra/repository/baseRepository';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, JwtService, HashService, BaseRepository],
+  providers: [AppService, JwtService, HashService],
 })
 export class AppModule { }

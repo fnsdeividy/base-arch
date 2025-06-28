@@ -9,8 +9,7 @@ import { BaseRepository } from '../../../../shared/infra/repository/baseReposito
 @Injectable()
 export class UserRepository extends BaseRepository<User> implements IUserRepository {
   constructor(
-
-    userRepository: Repository<User>
+    private readonly userRepository: Repository<User>
   ) {
     super(userRepository);
 
