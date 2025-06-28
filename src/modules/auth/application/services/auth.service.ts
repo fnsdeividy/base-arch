@@ -2,20 +2,23 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '../../../../shared/core/services/jwt.service';
 import { HashService } from '../../../../shared/core/services/hash.service';
-import { UserRepository } from '../../infra/repositories/user.repository';
+import { IUserRepository, USER_REPOSITORY } from '../../presentation/interface/user.interface';
 import { SignInDto } from '../../presentation/dto/sign-in.dto';
 import { SignUpDto } from '../../presentation/dto/sign-up.dto';
+
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly hashService: HashService,
-    private readonly userRepository: UserRepository,
-  ) {}
+    @Inject(USER_REPOSITORY)
+    private readonly userRepository: IUserRepository,
+  ) { }
 
   async signIn(signInDto: SignInDto) {
     const user = await this.userRepository.findByEmail(signInDto.email);
@@ -33,7 +36,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.jwtService.generateTokens(user.id, user.email);
+    const tokens = await this.jwtService.generateTokens(user.id.toString(), user.email);
 
     // Store session in Redis
     //await this.jwtService.storeSession(user.id, tokens.refreshToken);
@@ -42,7 +45,7 @@ export class AuthService {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user: {
-        id: user.id,
+        id: user.id.toString(),
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -64,7 +67,7 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const tokens = await this.jwtService.generateTokens(user.id, user.email);
+    const tokens = await this.jwtService.generateTokens(user.id.toString(), user.email);
 
     // Store session in Redis
     //await this.jwtService.storeSession(user.id, tokens.refreshToken);
@@ -73,7 +76,7 @@ export class AuthService {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user: {
-        id: user.id,
+        id: user.id.toString(),
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -100,7 +103,7 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    const tokens = await this.jwtService.generateTokens(user.id, user.email);
+    const tokens = await this.jwtService.generateTokens(user.id.toString(), user.email);
 
     // Update session in Redis
     //await this.jwtService.storeSession(user.id, tokens  .refreshToken);
