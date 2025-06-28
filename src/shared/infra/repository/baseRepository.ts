@@ -4,9 +4,9 @@ import {
   DefaultOptions,
   PaginateOptions,
   PaginateResult,
+  IBaseRepository,
 } from 'src/shared/presentation/interface/baseRepository';
 import {
-  DataSource,
   ObjectLiteral,
   DeepPartial,
   FindOptionsWhere,
@@ -17,9 +17,8 @@ import {
 } from 'typeorm';
 
 @Injectable()
-export class BaseRepository<T extends ObjectLiteral> {
+export class BaseRepository<T extends ObjectLiteral> implements IBaseRepository<T> {
   protected entityClass: new () => T;
-  protected repository: Repository<T>;
 
   static ORDER_ASC = 'ASC' as const;
   static ORDER_DESC = 'DESC' as const;
@@ -29,13 +28,7 @@ export class BaseRepository<T extends ObjectLiteral> {
   protected DEFAULT_SORT = 'id' as keyof T;
   protected DEFAULT_DIRECTION: OrderDirection = 'ASC';
 
-  constructor(
-    protected dataSource: DataSource,
-    entityClass: new () => T,
-  ) {
-    this.entityClass = entityClass;
-    this.repository = this.dataSource.getRepository(entityClass);
-  }
+  constructor(protected repository: Repository<T>) { }
 
   /**
    * ------------------------------------------------------
@@ -44,12 +37,12 @@ export class BaseRepository<T extends ObjectLiteral> {
    */
   async create(payload: DeepPartial<T>): Promise<T> {
     const entity = this.repository.create(payload);
-    return this.repository.save(entity);
+    return await this.repository.save(entity);
   }
 
   async createMany(payloads: DeepPartial<T>[]): Promise<T[]> {
     const entities = this.repository.create(payloads);
-    return this.repository.save(entities);
+    return await this.repository.save(entities);
   }
 
   async findBy<K extends keyof T>(
@@ -61,7 +54,7 @@ export class BaseRepository<T extends ObjectLiteral> {
     const options = { where } as any;
     if (opts?.relations) options.relations = opts.relations;
     if (opts?.select) options.select = opts.select;
-    return this.repository.findOne(options);
+    return await this.repository.findOne(options);
   }
 
   async list(opts?: DefaultOptions<T>): Promise<T[]> {
@@ -77,7 +70,7 @@ export class BaseRepository<T extends ObjectLiteral> {
       (options as any).order = { [this.DEFAULT_SORT]: this.DEFAULT_DIRECTION };
     }
 
-    return this.repository.find(options);
+    return await this.repository.find(options);
   }
 
   async paginate(options: PaginateOptions<T>): Promise<PaginateResult<T>> {
@@ -114,11 +107,11 @@ export class BaseRepository<T extends ObjectLiteral> {
     const options = { where: opts?.where } as any;
     if (opts?.relations) options.relations = opts.relations;
     if (opts?.select) options.select = opts.select;
-    return this.repository.findOne(options);
+    return await this.repository.findOne(options);
   }
 
   async count(opts?: DefaultOptions<T>): Promise<number> {
-    return this.repository.count({ where: opts?.where });
+    return await this.repository.count({ where: opts?.where });
   }
 
   async firstOrCreate(search: Partial<T>, payload: DeepPartial<T>): Promise<T> {
@@ -134,11 +127,11 @@ export class BaseRepository<T extends ObjectLiteral> {
     where: FindOptionsWhere<T>,
     payload: Partial<T>,
   ): Promise<UpdateResult> {
-    return this.repository.update(where, payload);
+    return await this.repository.update(where, payload);
   }
 
   async delete(where: FindOptionsWhere<T>): Promise<DeleteResult> {
-    return this.repository.delete(where);
+    return await this.repository.delete(where);
   }
 
   /**
@@ -147,7 +140,7 @@ export class BaseRepository<T extends ObjectLiteral> {
    * ------------------------------------------------------
    */
   async transaction<R>(callback: (queryRunner: any) => Promise<R>): Promise<R> {
-    const queryRunner = this.dataSource.createQueryRunner();
+    const queryRunner = this.repository.manager.connection.createQueryRunner();
     await queryRunner.connect();
     await queryRunner.startTransaction();
 

@@ -36,7 +36,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = await this.jwtService.generateTokens(user.id.toString(), user.email);
+    const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
 
     // Store session in Redis
     //await this.jwtService.storeSession(user.id, tokens.refreshToken);
@@ -97,7 +97,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const user = await this.userRepository.findById(payload.userId);
+    const user = await this.userRepository.findBy('id', Number(payload.userId));
 
     if (!user) {
       throw new UnauthorizedException('User not found');

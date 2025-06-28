@@ -16,11 +16,11 @@ export interface Tokens {
 export class JwtService {
   constructor(
     private readonly jwtService: NestJwtService,
-    private readonly redisService: RedisService,
-  ) {}
 
-  async generateTokens(userId: string, email: string): Promise<Tokens> {
-    const accessToken = await this.jwtService.sign(
+  ) { }
+
+  generateTokens(userId: string, email: string): Tokens {
+    const accessToken = this.jwtService.sign(
       { userId, email, type: 'access' },
       { expiresIn: '15m' },
     );
@@ -35,29 +35,27 @@ export class JwtService {
 
   async verifyAccessToken(token: string): Promise<TokenPayload | null> {
     try {
-      const payload = this.jwtService.verify(token) as TokenPayload;
+      const payload = await this.jwtService.verify(token);
       return payload.type === 'access' ? payload : null;
     } catch {
       return null;
     }
   }
 
-  async verifyRefreshToken(token: string): Promise<TokenPayload | null> {
+  verifyRefreshToken(token: string): TokenPayload | null {
     try {
-      const payload = this.jwtService.verify(token) as TokenPayload;
+      const payload = this.jwtService.verify(token);
       return payload.type === 'refresh' ? payload : null;
     } catch {
       return null;
     }
   }
 
-
-
-  async validateSession(
-    userId: string,
-    refreshToken: string,
-  ): Promise<boolean> {
-    const storedToken = await this.getSession(userId);
-    return storedToken === refreshToken;
-  }
+  // async validateSession(
+  //   userId: string,
+  //   refreshToken: string,
+  // ): Promise<boolean> {
+  //   const storedToken = await this.getSession(userId);
+  //   return storedToken === refreshToken;
+  // }
 }

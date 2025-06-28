@@ -1,3 +1,4 @@
+import { IBaseRepository } from 'src/shared/presentation/interface/baseRepository';
 import { User } from '../../domain/user.model';
 
 export interface IUser {
@@ -12,6 +13,11 @@ export interface IUser {
   updatedAt: Date;
 }
 
+export interface IUserRepository extends IBaseRepository<User> {
+  findByEmail(email: string): Promise<User | null>;
+  findById(id: string): Promise<User | null>;
+}
+
 export interface CreateUserDto {
   email: string;
   password: string;
@@ -20,12 +26,5 @@ export interface CreateUserDto {
   phone?: string;
 }
 
-export interface IUserRepository {
-  findByEmail(email: string): Promise<User | null>;
-  findById(id: string): Promise<User | null>;
-  create(userData: CreateUserDto): Promise<User>;
-  update(id: string, userData: Partial<CreateUserDto>): Promise<User | null>;
-  delete(id: string): Promise<boolean>;
-}
 
 export const USER_REPOSITORY = 'USER_REPOSITORY';

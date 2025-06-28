@@ -1,106 +1,31 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource } from 'typeorm';
+import { Repository } from 'typeorm';
 import { User } from '../../domain/user.model';
 import {
   IUserRepository,
-  CreateUserDto,
 } from '../../presentation/interface/user.interface';
+import { BaseRepository } from '../../../../shared/infra/repository/baseRepository';
 
 @Injectable()
-export class UserRepository implements IUserRepository {
-  constructor(private dataSource: DataSource) {}
+export class UserRepository extends BaseRepository<User> implements IUserRepository {
+  constructor(
+
+    userRepository: Repository<User>
+  ) {
+    super(userRepository);
+
+  }
 
   async findByEmail(email: string): Promise<User | null> {
-    const query = `
-      SELECT id, email, password, first_name, last_name, phone, created_at, updated_at
-      FROM users 
-      WHERE email = $1
-    `;
 
-    const result = await this.dataSource.query(query, [email]);
-    return result[0] || null;
+    const result = await this.findBy('email', email);
+    return result || null;
   }
 
   async findById(id: string): Promise<User | null> {
-    const query = `
-      SELECT id, email, password, first_name, last_name, phone, created_at, updated_at
-      FROM users 
-      WHERE id = $1
-    `;
-
-    const result = await this.dataSource.query(query, [id]);
-    return result[0] || null;
+    const result = await this.findBy('id', Number(id));
+    return result || null;
   }
 
-  async create(userData: CreateUserDto): Promise<User> {
-    const query = `
-      INSERT INTO users (email, password, first_name, last_name, phone)
-      VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, email, password, first_name, last_name, phone, created_at, updated_at
-    `;
 
-    const values = [
-      userData.email,
-      userData.password,
-      userData.firstName,
-      userData.lastName,
-      userData.phone,
-    ];
-
-    const result = await this.dataSource.query(query, values);
-    return result[0];
-  }
-
-  async update(
-    id: string,
-    userData: Partial<CreateUserDto>,
-  ): Promise<User | null> {
-    const fields: string[] = [];
-    const values: any[] = [];
-    let paramCount = 1;
-
-    if (userData.email) {
-      fields.push(`email = $${paramCount++}`);
-      values.push(userData.email);
-    }
-    if (userData.password) {
-      fields.push(`password = $${paramCount++}`);
-      values.push(userData.password);
-    }
-    if (userData.firstName) {
-      fields.push(`first_name = $${paramCount++}`);
-      values.push(userData.firstName);
-    }
-    if (userData.lastName) {
-      fields.push(`last_name = $${paramCount++}`);
-      values.push(userData.lastName);
-    }
-    if (userData.phone !== undefined) {
-      fields.push(`phone = $${paramCount++}`);
-      values.push(userData.phone);
-    }
-
-    if (fields.length === 0) {
-      return this.findById(id);
-    }
-
-    fields.push(`updated_at = NOW()`);
-    values.push(id);
-
-    const query = `
-      UPDATE users 
-      SET ${fields.join(', ')}
-      WHERE id = $${paramCount}
-      RETURNING id, email, password, first_name, last_name, phone, created_at, updated_at
-    `;
-
-    const result = await this.dataSource.query(query, values);
-    return result[0] || null;
-  }
-
-  async delete(id: string): Promise<boolean> {
-    const query = `DELETE FROM users WHERE id = $1`;
-    const result = await this.dataSource.query(query, [id]);
-    return result.length > 0;
-  }
 }

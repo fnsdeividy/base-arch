@@ -13,7 +13,8 @@ import { AuthModule } from './modules/auth/auth.module';
 // Serviços compartilhados
 import { JwtService } from './shared/core/services/jwt.service';
 import { HashService } from './shared/core/services/hash.service';
-import { DatabaseService } from './shared/infra/database/database.service';
+import { BaseRepository } from './shared/infra/repository/baseRepository';
+
 
 @Module({
   imports: [
@@ -38,6 +39,6 @@ import { DatabaseService } from './shared/infra/database/database.service';
     AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, JwtService, HashService, DatabaseService],
+  providers: [AppService, JwtService, HashService, BaseRepository],
 })
 export class AppModule { }
