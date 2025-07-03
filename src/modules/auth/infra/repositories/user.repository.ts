@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { User } from '../../domain/user.model';
+import { User } from '@modules/auth/domain/user.model';
 import {
   IUserRepository,
-} from '../../presentation/interface/user.interface';
-import { BaseRepository } from '../../../../shared/infra/repository/baseRepository';
+} from '@modules/auth/presentation/interface/user.interface';
+import { BaseRepository } from '@shared/infra/repository/baseRepository';
 
 @Injectable()
 export class UserRepository extends BaseRepository<User> implements IUserRepository {

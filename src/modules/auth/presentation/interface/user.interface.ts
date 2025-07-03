@@ -1,5 +1,5 @@
-import { IBaseRepository } from 'src/shared/presentation/interface/baseRepository';
-import { User } from '../../domain/user.model';
+import { IBaseRepository } from '@shared/presentation/interface/baseRepository';
+import { User } from '@modules/auth/domain/user.model';
 
 export interface IUser {
   id: string;

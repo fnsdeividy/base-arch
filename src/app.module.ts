@@ -4,18 +4,18 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 // Controllers e Services HTTP
-import { AppController } from './shared/presentation/http/controllers/app.controller';
+import { AppController } from '@shared/presentation/http/controllers/app.controller';
 import { AppService } from './app.service';
 
 // Módulos de domínio
-import { AuthModule } from './modules/auth/auth.module';
+import { AuthModule } from '@modules/auth/auth.module';
 
 // Serviços compartilhados
-import { JwtService } from './shared/core/services/jwt.service';
-import { HashService } from './shared/core/services/hash.service';
+import { JwtService } from '@shared/core/services/jwt.service';
+import { HashService } from '@shared/core/services/hash.service';
 
 // Entities
-import { User } from './modules/auth/domain/user.model';
+import { User } from '@modules/auth/domain/user.model';
 
 @Module({
   imports: [

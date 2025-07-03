@@ -4,11 +4,11 @@ import {
   ConflictException,
   Inject,
 } from '@nestjs/common';
-import { JwtService } from '../../../../shared/core/services/jwt.service';
-import { HashService } from '../../../../shared/core/services/hash.service';
+import { JwtService } from '@shared/core/services/jwt.service';
+import { HashService } from '@shared/core/services/hash.service';
 import { IUserRepository, USER_REPOSITORY } from '../../presentation/interface/user.interface';
-import { SignInDto } from '../../presentation/dto/sign-in.dto';
-import { SignUpDto } from '../../presentation/dto/sign-up.dto';
+import { SignInDto } from '@modules/auth/presentation/dto/sign-in.dto';
+import { SignUpDto } from '@modules/auth/presentation/dto/sign-up.dto';
 
 
 @Injectable()

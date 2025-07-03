@@ -1,15 +1,15 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
-import { AuthController } from './presentation/http/controllers/auth.controller';
-import { AuthService } from './application/services/auth.service';
-import { JwtService } from '../../shared/core/services/jwt.service';
-import { HashService } from '../../shared/core/services/hash.service';
+import { AuthController } from '@modules/auth/presentation/http/controllers/auth.controller';
+import { AuthService } from '@modules/auth/application/services/auth.service';
+import { JwtService } from '@shared/core/services/jwt.service';
+import { HashService } from '@shared/core/services/hash.service';
 import {
   UserRepository,
-} from './infra/repositories/user.repository';
-import { USER_REPOSITORY } from './presentation/interface/user.interface';
-import { User } from './domain/user.model';
+} from '@modules/auth/infra/repositories/user.repository';
+import { USER_REPOSITORY } from '@modules/auth/presentation/interface/user.interface';
+import { User } from '@modules/auth/domain/user.model';
 
 @Module({
   imports: [

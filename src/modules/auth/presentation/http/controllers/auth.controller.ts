@@ -1,8 +1,8 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Request } from '@nestjs/common';
-import { AuthService } from '../../../application/services/auth.service';
-import { SignInDto } from '../../../presentation/dto/sign-in.dto';
-import { SignUpDto } from '../../../presentation/dto/sign-up.dto';
-import { JwtAuthGuard } from '../../../../../shared/presentation/http/guards/jwt-auth.guard';
+import { AuthService } from '@modules/auth/application/services/auth.service';
+import { SignInDto } from '@modules/auth/presentation/dto/sign-in.dto';
+import { SignUpDto } from '@modules/auth/presentation/dto/sign-up.dto';
+import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
 
 @Controller('api/v1/sessions')
 export class AuthController {
