@@ -1,4 +1,4 @@
-import { IBaseRepository } from '@shared/presentation/interface/baseRepository';
+import { IBaseRepository } from '@shared/presentation/interfaces/baseRepository';
 import { User } from '@modules/user/domain/entities/user.model';
 import { UpdateUserDto } from '@modules/user/presentation/dto/updateUser.dto';
 

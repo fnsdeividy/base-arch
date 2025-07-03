@@ -7,9 +7,9 @@ import { JwtService } from '@shared/core/services/jwt.service';
 import { HashService } from '@shared/core/services/hash.service';
 import {
   UserRepository,
-} from '@modules/auth/infra/repositories/user.repository';
-import { USER_REPOSITORY } from '@modules/auth/presentation/interface/user.interface';
-import { User } from '@modules/auth/domain/user.model';
+} from '@modules/user/infra/repositories/user.repository';
+import { USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
+import { User } from '@modules/user/domain/entities/user.model';
 
 @Module({
   imports: [

@@ -15,7 +15,8 @@ import { JwtService } from '@shared/core/services/jwt.service';
 import { HashService } from '@shared/core/services/hash.service';
 
 // Entities
-import { User } from '@modules/auth/domain/user.model';
+import { User } from '@modules/user/domain/entities/user.model';
+import { UserModule } from '@modules/user/user.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { User } from '@modules/auth/domain/user.model';
       signOptions: { expiresIn: '15m' },
     }),
     AuthModule,
+    UserModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService, HashService],

@@ -6,13 +6,14 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@shared/core/services/jwt.service';
 import { HashService } from '@shared/core/services/hash.service';
-import { IUserRepository, USER_REPOSITORY } from '../../presentation/interface/user.interface';
-import { SignInDto } from '@modules/auth/presentation/dto/sign-in.dto';
-import { SignUpDto } from '@modules/auth/presentation/dto/sign-up.dto';
+import { IUserRepository, USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
+import { SignInDto } from '@modules/auth/presentation/dto/signin.dto';
+import { SignUpDto } from '@modules/auth/presentation/dto/signup.dto';
+import { IAuthService } from '@modules/auth/presentation/interfaces/auth.interface';
 
 
 @Injectable()
-export class AuthService {
+export class AuthService implements IAuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly hashService: HashService,
@@ -67,7 +68,7 @@ export class AuthService {
       password: hashedPassword,
     });
 
-    const tokens = await this.jwtService.generateTokens(user.id.toString(), user.email);
+    const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
 
     // Store session in Redis
     //await this.jwtService.storeSession(user.id, tokens.refreshToken);
@@ -91,7 +92,7 @@ export class AuthService {
   }
 
   async refreshToken(refreshToken: string) {
-    const payload = await this.jwtService.verifyRefreshToken(refreshToken);
+    const payload = this.jwtService.verifyRefreshToken(refreshToken);
 
     if (!payload) {
       throw new UnauthorizedException('Invalid refresh token');
@@ -103,7 +104,7 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
 
-    const tokens = await this.jwtService.generateTokens(user.id.toString(), user.email);
+    const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
 
     // Update session in Redis
     //await this.jwtService.storeSession(user.id, tokens  .refreshToken);

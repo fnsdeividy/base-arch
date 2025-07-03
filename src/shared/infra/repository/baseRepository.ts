@@ -5,7 +5,7 @@ import {
   PaginateOptions,
   PaginateResult,
   IBaseRepository,
-} from 'src/shared/presentation/interface/baseRepository';
+} from '@shared/presentation/interfaces/baseRepository';
 import {
   ObjectLiteral,
   DeepPartial,
