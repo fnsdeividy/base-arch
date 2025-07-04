@@ -11,11 +11,11 @@ import { AppService } from './app.service';
 import { AuthModule } from '@modules/auth/auth.module';
 
 // Serviços compartilhados
-import { JwtService } from '@shared/core/services/jwt.service';
-import { HashService } from '@shared/core/services/hash.service';
+import { JwtService } from '@shared/application/services/jwt.service';
+import { HashService } from '@shared/application/services/hash.service';
 
 // Entities
-import { User } from '@modules/user/domain/entities/user.model';
+import { User } from '@modules/user/entities/user.entity';
 import { UserModule } from '@modules/user/user.module';
 
 @Module({

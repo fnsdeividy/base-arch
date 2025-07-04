@@ -1,6 +1,6 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, Request, Put } from '@nestjs/common';
 import { AuthenticatedRequest, CreateUserDto, IUserService } from '@modules/user/presentation/interfaces/user.interface';
-import { UpdateUserDto } from '../../dto/updateUser.dto';
+import { UpdateUserDto } from '@modules/user/presentation/dto/updateUser.dto';
 
 
 

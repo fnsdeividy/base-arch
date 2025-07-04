@@ -1,5 +1,5 @@
 import { IBaseRepository } from '@shared/presentation/interfaces/baseRepository';
-import { User } from '@modules/user/domain/entities/user.model';
+import { User } from '@modules/user/entities/user.entity';
 import { UpdateUserDto } from '@modules/user/presentation/dto/updateUser.dto';
 
 export interface IUser {

@@ -4,8 +4,8 @@ import {
   ConflictException,
   Inject,
 } from '@nestjs/common';
-import { JwtService } from '@shared/core/services/jwt.service';
-import { HashService } from '@shared/core/services/hash.service';
+import { JwtService } from '@shared/application/services/jwt.service';
+import { HashService } from '@shared/application/services/hash.service';
 import { IUserRepository, USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
 import { SignInDto } from '@modules/auth/presentation/dto/signin.dto';
 import { SignUpDto } from '@modules/auth/presentation/dto/signup.dto';

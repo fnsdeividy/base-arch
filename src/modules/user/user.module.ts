@@ -6,7 +6,7 @@ import {
   UserRepository,
 } from '@modules/user/infra/repositories/user.repository';
 import { USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
-import { User } from '@modules/user/domain/entities/user.model';
+import { User } from '@modules/user/entities/user.entity';
 import { UserService } from './application/services/user.service';
 
 @Module({

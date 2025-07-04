@@ -3,13 +3,13 @@ import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
 import { AuthController } from '@modules/auth/presentation/http/controllers/auth.controller';
 import { AuthService } from '@modules/auth/application/services/auth.service';
-import { JwtService } from '@shared/core/services/jwt.service';
-import { HashService } from '@shared/core/services/hash.service';
+import { JwtService } from '@shared/application/services/jwt.service';
+import { HashService } from '@shared/application/services/hash.service';
 import {
   UserRepository,
 } from '@modules/user/infra/repositories/user.repository';
 import { USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
-import { User } from '@modules/user/domain/entities/user.model';
+import { User } from '@modules/user/entities/user.model';
 
 @Module({
   imports: [
