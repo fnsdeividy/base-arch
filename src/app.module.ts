@@ -16,11 +16,11 @@ import { HashService } from '@shared/application/services/hash.service';
 
 // Entities
 import { User } from '@modules/user/entities/user.entity';
-import { Store } from '@modules/store/entities/store.entity';
-import { Product } from '@modules/product/entities/product.entity';
+import { Role } from '@modules/role/entities/role.entity';
+import { Permission } from '@modules/permission/entities/permission.entity';
 import { UserModule } from '@modules/user/user.module';
-import { StoresModule } from '@modules/store/stores.module';
-import { ProductsModule } from '@modules/product/products.module';
+import { RoleModule } from '@modules/role/role.module';
+import { PermissionModule } from '@modules/permission/permission.module';
 
 @Module({
   imports: [
@@ -34,7 +34,7 @@ import { ProductsModule } from '@modules/product/products.module';
       database: process.env.DB_NAME || 'base_backend',
       username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'password',
-      entities: [User, Store, Product],
+      entities: [User, Role, Permission],
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
     }),
@@ -44,8 +44,8 @@ import { ProductsModule } from '@modules/product/products.module';
     }),
     AuthModule,
     UserModule,
-    StoresModule,
-    ProductsModule,
+    RoleModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService, HashService],

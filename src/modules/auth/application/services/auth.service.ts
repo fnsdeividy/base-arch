@@ -10,6 +10,7 @@ import { IUserRepository, USER_REPOSITORY } from '@modules/user/presentation/int
 import { SignInDto } from '@modules/auth/presentation/dto/signin.dto';
 import { SignUpDto } from '@modules/auth/presentation/dto/signup.dto';
 import { IAuthService } from '@modules/auth/presentation/interfaces/auth.interface';
+import { AuthorizationService } from '@shared/application/services/authorization.service';
 
 
 @Injectable()
@@ -19,6 +20,7 @@ export class AuthService implements IAuthService {
     private readonly hashService: HashService,
     @Inject(USER_REPOSITORY)
     private readonly userRepository: IUserRepository,
+    private readonly authorizationService: AuthorizationService,
   ) { }
 
   async signIn(signInDto: SignInDto) {
@@ -37,6 +39,10 @@ export class AuthService implements IAuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    // Get user roles and permissions
+    const userRoles = await this.authorizationService.getUserRoles(user.id);
+    const userPermissions = await this.authorizationService.getUserPermissions(user.id);
+
     const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
 
     // Store session in Redis
@@ -50,6 +56,17 @@ export class AuthService implements IAuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        roles: userRoles.map(role => ({
+          id: role.id,
+          name: role.name,
+          description: role.description
+        })),
+        permissions: userPermissions.map(permission => ({
+          id: permission.id,
+          name: permission.name,
+          resource: permission.resource,
+          action: permission.action
+        }))
       },
     };
   }
@@ -68,6 +85,10 @@ export class AuthService implements IAuthService {
       password: hashedPassword,
     });
 
+    // Get user roles and permissions
+    const userRoles = await this.authorizationService.getUserRoles(user.id);
+    const userPermissions = await this.authorizationService.getUserPermissions(user.id);
+
     const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
 
     // Store session in Redis
@@ -81,6 +102,17 @@ export class AuthService implements IAuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
+        roles: userRoles.map(role => ({
+          id: role.id,
+          name: role.name,
+          description: role.description
+        })),
+        permissions: userPermissions.map(permission => ({
+          id: permission.id,
+          name: permission.name,
+          resource: permission.resource,
+          action: permission.action
+        }))
       },
     };
   }
