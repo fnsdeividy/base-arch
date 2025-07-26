@@ -1,10 +1,10 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
-import { PermissionService } from '../../../application/services/permission.service';
-import { CreatePermissionDto } from '../../dto/createPermission.dto';
-import { UpdatePermissionDto } from '../../dto/updatePermission.dto';
-import { JwtAuthGuard } from '../../../../shared/presentation/http/guards/jwt-auth.guard';
-import { RolesGuard } from '../../../../shared/presentation/http/guards/roles.guard';
-import { Roles } from '../../../../shared/presentation/http/decorators/roles.decorator';
+import { PermissionService } from '@modules/permission/application/services/permission.service';
+import { CreatePermissionDto } from '@modules/permission/presentation/dto/createPermission.dto';
+import { UpdatePermissionDto } from '@modules/permission/presentation/dto/updatePermission.dto';
+import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
+import { RolesGuard } from '@shared/presentation/http/guards/roles.guard';
+import { Roles } from '@shared/presentation/http/decorators/roles.decorator';
 
 @Controller('permissions')
 @UseGuards(JwtAuthGuard, RolesGuard)

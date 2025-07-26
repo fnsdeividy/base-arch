@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { PermissionRepository } from '../../infra/repositories/permission.repository';
-import { Permission } from '../../entities/permission.entity';
-import { CreatePermissionDto } from '../../presentation/dto/createPermission.dto';
-import { UpdatePermissionDto } from '../../presentation/dto/updatePermission.dto';
+import { PermissionRepository } from '@modules/permission/infra/repositories/permission.repository';
+import { Permission } from '@modules/permission/entities/permission.entity';
+import { CreatePermissionDto } from '@modules/permission/presentation/dto/createPermission.dto';
+import { UpdatePermissionDto } from '@modules/permission/presentation/dto/updatePermission.dto';
 
 @Injectable()
 export class PermissionService {
@@ -14,16 +14,16 @@ export class PermissionService {
       throw new ConflictException('Permission with this name already exists');
     }
 
-    const permission = this.permissionRepository.create(createPermissionDto);
-    return this.permissionRepository.save(permission);
+    return await this.permissionRepository.create(createPermissionDto);
+
   }
 
   async findAll(): Promise<Permission[]> {
-    return this.permissionRepository.find();
+    return await this.permissionRepository.list();
   }
 
   async findOne(id: string): Promise<Permission> {
-    const permission = await this.permissionRepository.findOne(id);
+    const permission = await this.permissionRepository.findBy('id', id);
     if (!permission) {
       throw new NotFoundException('Permission not found');
     }
@@ -41,12 +41,14 @@ export class PermissionService {
     }
 
     Object.assign(permission, updatePermissionDto);
-    return this.permissionRepository.save(permission);
+    await this.permissionRepository.update({ id: permission.id }, updatePermissionDto);
+
+    return permission;
   }
 
   async remove(id: string): Promise<void> {
     const permission = await this.findOne(id);
-    await this.permissionRepository.remove(permission);
+    await this.permissionRepository.delete(permission);
   }
 
   async findByResource(resource: string): Promise<Permission[]> {

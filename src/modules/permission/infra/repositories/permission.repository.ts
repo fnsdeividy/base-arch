@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Permission } from '../../entities/permission.entity';
-import { BaseRepository } from '../../../shared/infra/repository/baseRepository';
+import { Permission } from '@modules/permission/entities/permission.entity';
+import { BaseRepository } from '@shared/infra/repository/baseRepository';
 
 @Injectable()
 export class PermissionRepository extends BaseRepository<Permission> {
