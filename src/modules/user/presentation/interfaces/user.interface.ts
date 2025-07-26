@@ -17,7 +17,8 @@ export interface IUser {
 export interface IUserService {
   createUser(createUserDto: CreateUserDto): Promise<User>
   updateUser(id: string, payload: UpdateUserDto): Promise<User | null>
-
+  findById(id: string): Promise<User | null>
+  deleteUser(id: string): Promise<void>
 }
 
 export interface IUserRepository extends IBaseRepository<User> {

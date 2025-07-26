@@ -8,6 +8,7 @@ import {
 import { USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
 import { User } from '@modules/user/entities/user.entity';
 import { UserService } from './application/services/user.service';
+import { HashService } from '@shared/application/services/hash.service';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UserService } from './application/services/user.service';
   controllers: [UserController],
   providers: [
     UserService,
+    HashService,
     {
       provide: USER_REPOSITORY,
       useFactory: (userRepository) => new UserRepository(userRepository)

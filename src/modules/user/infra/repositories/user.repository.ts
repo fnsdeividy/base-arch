@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Repository } from 'typeorm';
-import { User } from '@modules/user/entities/user.model';
+import { User } from '@modules/user/entities/user.entity';
 import {
   IUserRepository,
 } from '@modules/user/presentation/interfaces/user.interface';
@@ -22,7 +22,7 @@ export class UserRepository extends BaseRepository<User> implements IUserReposit
   }
 
   async findById(id: string): Promise<User | null> {
-    const result = await this.findBy('id', Number(id));
+    const result = await this.findBy('id', id);
     return result || null;
   }
 
