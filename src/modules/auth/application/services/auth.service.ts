@@ -30,7 +30,7 @@ export class AuthService implements IAuthService {
 
     const isPasswordValid = await this.hashService.compare(
       signInDto.password,
-      user.password,
+      user.password || '',
     );
 
     if (!isPasswordValid) {
@@ -98,7 +98,7 @@ export class AuthService implements IAuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const user = await this.userRepository.findBy('id', Number(payload.userId));
+    const user = await this.userRepository.findBy('id', payload.userId);
 
     if (!user) {
       throw new UnauthorizedException('User not found');
