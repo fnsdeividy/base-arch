@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
-import { RoleRepository } from '../../infra/repositories/role.repository';
-import { Role } from '../../entities/role.entity';
-import { CreateRoleDto } from '../../presentation/dto/createRole.dto';
-import { UpdateRoleDto } from '../../presentation/dto/updateRole.dto';
+import { RoleRepository } from '@modules/role/infra/repositories/role.repository';
+import { Role } from '@modules/role/entities/role.entity';
+import { CreateRoleDto } from '@modules/role/presentation/dto/createRole.dto';
+import { UpdateRoleDto } from '@modules/role/presentation/dto/updateRole.dto';
 
 @Injectable()
 export class RoleService {
@@ -14,16 +14,16 @@ export class RoleService {
       throw new ConflictException('Role with this name already exists');
     }
 
-    const role = this.roleRepository.create(createRoleDto);
-    return this.roleRepository.save(role);
+    return this.roleRepository.create(createRoleDto);
+
   }
 
   async findAll(): Promise<Role[]> {
-    return this.roleRepository.find();
+    return this.roleRepository.list();
   }
 
   async findOne(id: string): Promise<Role> {
-    const role = await this.roleRepository.findOne(id);
+    const role = await this.roleRepository.findBy('id', id);
     if (!role) {
       throw new NotFoundException('Role not found');
     }
@@ -49,7 +49,8 @@ export class RoleService {
     }
 
     Object.assign(role, updateRoleDto);
-    return this.roleRepository.save(role);
+    await this.roleRepository.update({ id: role.id }, updateRoleDto);
+    return role;
   }
 
   async remove(id: string): Promise<void> {
@@ -59,7 +60,7 @@ export class RoleService {
       throw new ConflictException('Cannot delete system roles');
     }
 
-    await this.roleRepository.remove(role);
+    await this.roleRepository.delete(role);
   }
 
   async findSystemRoles(): Promise<Role[]> {
