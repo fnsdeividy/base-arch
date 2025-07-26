@@ -17,8 +17,10 @@ import { HashService } from '@shared/application/services/hash.service';
 // Entities
 import { User } from '@modules/user/entities/user.entity';
 import { Store } from '@modules/store/entities/store.entity';
+import { Product } from '@modules/product/entities/product.entity';
 import { UserModule } from '@modules/user/user.module';
 import { StoresModule } from '@modules/store/stores.module';
+import { ProductsModule } from '@modules/product/products.module';
 
 @Module({
   imports: [
@@ -32,7 +34,7 @@ import { StoresModule } from '@modules/store/stores.module';
       database: process.env.DB_NAME || 'base_backend',
       username: process.env.DB_USER || 'postgres',
       password: process.env.DB_PASSWORD || 'password',
-      entities: [User, Store],
+      entities: [User, Store, Product],
       synchronize: process.env.NODE_ENV !== 'production',
       logging: process.env.NODE_ENV === 'development',
     }),
@@ -43,6 +45,7 @@ import { StoresModule } from '@modules/store/stores.module';
     AuthModule,
     UserModule,
     StoresModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService, HashService],

@@ -18,7 +18,7 @@ export class UserService implements IUserService {
     private readonly hashService: HashService,
   ) { }
 
-  async createUser(createUserDto: CreateUserDto): Promise<User> {
+  async createUser(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
     const existingUser = await this.userRepository.findByEmail(createUserDto.email);
     if (existingUser) {
       throw new ConflictException('Email already exists');
@@ -32,8 +32,8 @@ export class UserService implements IUserService {
       password: hashedPassword,
     });
 
-    const userResponse = { ...user };
-    delete userResponse.password;
+    const userResponse: Omit<User, 'password'> = { ...user };
+
     return userResponse;
   }
 
@@ -55,18 +55,16 @@ export class UserService implements IUserService {
 
     if (updatedUser) {
       const userResponse = { ...updatedUser };
-      delete userResponse.password;
       return userResponse;
     }
 
     return updatedUser;
   }
 
-  async findById(id: string): Promise<User | null> {
+  async findById(id: string): Promise<Omit<User, 'password'> | null> {
     const user = await this.userRepository.findById(id);
     if (user) {
-      const userResponse = { ...user };
-      delete userResponse.password;
+      const userResponse: Omit<User, 'password'> = { ...user };
       return userResponse;
     }
     return user;
