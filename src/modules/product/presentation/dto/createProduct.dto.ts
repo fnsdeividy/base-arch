@@ -1,8 +1,7 @@
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsUrl, IsUUID, Min, IsPositive } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsUUID, IsBoolean } from 'class-validator';
 
 export class CreateProductDto {
   @IsString()
-  @IsNotEmpty()
   name: string;
 
   @IsString()
@@ -10,22 +9,7 @@ export class CreateProductDto {
   description?: string;
 
   @IsNumber()
-  @IsPositive()
   price: number;
-
-  @IsNumber()
-  @IsPositive()
-  @IsOptional()
-  costPrice?: number;
-
-  @IsNumber()
-  @Min(0)
-  stockQuantity: number;
-
-  @IsNumber()
-  @Min(0)
-  @IsOptional()
-  minStockLevel?: number;
 
   @IsString()
   @IsOptional()
@@ -33,33 +17,16 @@ export class CreateProductDto {
 
   @IsString()
   @IsOptional()
-  barcode?: string;
-
-  @IsString()
-  @IsOptional()
   category?: string;
 
   @IsString()
-  @IsOptional()
-  brand?: string;
-
-  @IsString()
-  @IsOptional()
-  unit?: string;
-
-  @IsNumber()
-  @IsPositive()
-  @IsOptional()
-  weight?: number;
-
-  @IsString()
-  @IsOptional()
-  weightUnit?: string;
-
-  @IsUrl()
   @IsOptional()
   imageUrl?: string;
 
   @IsUUID()
   storeId: string;
-} 
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+}

@@ -10,7 +10,7 @@ import { IUserRepository, USER_REPOSITORY } from '@modules/user/presentation/int
 import { SignInDto } from '@modules/auth/presentation/dto/signin.dto';
 import { SignUpDto } from '@modules/auth/presentation/dto/signup.dto';
 import { IAuthService } from '@modules/auth/presentation/interfaces/auth.interface';
-
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class AuthService implements IAuthService {
@@ -39,9 +39,6 @@ export class AuthService implements IAuthService {
 
     const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
 
-    // Store session in Redis
-    //await this.jwtService.storeSession(user.id, tokens.refreshToken);
-
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
@@ -64,14 +61,12 @@ export class AuthService implements IAuthService {
     const hashedPassword = await this.hashService.hash(signUpDto.password);
 
     const user = await this.userRepository.create({
+      id: randomUUID(),
       ...signUpDto,
       password: hashedPassword,
     });
 
     const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
-
-    // Store session in Redis
-    //await this.jwtService.storeSession(user.id, tokens.refreshToken);
 
     return {
       accessToken: tokens.accessToken,
@@ -86,8 +81,6 @@ export class AuthService implements IAuthService {
   }
 
   signOut(userId: string) {
-    // Remove session from Redis
-    // await this.jwtService.removeSession(userId);
     return { message: `Successfully signed out ${userId}` };
   }
 
@@ -105,9 +98,6 @@ export class AuthService implements IAuthService {
     }
 
     const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
-
-    // Update session in Redis
-    //await this.jwtService.storeSession(user.id, tokens  .refreshToken);
 
     return {
       accessToken: tokens.accessToken,

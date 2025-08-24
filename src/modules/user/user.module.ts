@@ -1,10 +1,7 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { UserController } from '@modules/user/presentation/http/controllers/user.controller'
-
-import {
-  UserRepository,
-} from '@modules/user/infra/repositories/user.repository';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { UserController } from '@modules/user/presentation/http/controllers/user.controller';
+import { UserRepository } from '@modules/user/infra/repositories/user.repository';
 import { USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
 import { User } from '@modules/user/entities/user.entity';
 import { UserService } from './application/services/user.service';
@@ -20,7 +17,8 @@ import { HashService } from '@shared/application/services/hash.service';
     HashService,
     {
       provide: USER_REPOSITORY,
-      useFactory: (userRepository) => new UserRepository(userRepository)
+      useFactory: (userRepository) => new UserRepository(userRepository),
+      inject: [getRepositoryToken(User)],
     },
   ],
   exports: [UserService],

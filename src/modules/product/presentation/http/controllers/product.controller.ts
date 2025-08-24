@@ -1,73 +1,42 @@
-import {
-  Controller,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-  Put,
-  Get,
-  Param,
-  Delete,
-  UseGuards
-} from '@nestjs/common';
-import {
-  CreateProductDto,
-  IProductService,
-  UpdateProductDto
-} from '@modules/product/presentation/interfaces/product.interface';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { ProductService } from '@modules/product/application/services/product.service';
+import { CreateProductDto } from '@modules/product/presentation/dto/createProduct.dto';
+import { UpdateProductDto } from '@modules/product/presentation/dto/updateProduct.dto';
 import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
 
 @Controller('api/v1/products')
 @UseGuards(JwtAuthGuard)
 export class ProductController {
-  constructor(private readonly productService: IProductService) { }
+  constructor(private readonly productService: ProductService) { }
 
-  @Post('create')
-  @HttpCode(HttpStatus.CREATED)
-  create(@Body() payload: CreateProductDto) {
-    return this.productService.createProduct(payload);
+  @Post()
+  create(@Body() createProductDto: CreateProductDto) {
+    return this.productService.create(createProductDto);
   }
 
   @Get()
-  @HttpCode(HttpStatus.OK)
-  findAll() {
+  findAll(@Query('category') category?: string, @Query('storeId') storeId?: string) {
+    if (category) {
+      return this.productService.findByCategory(category);
+    }
+    if (storeId) {
+      return this.productService.findByStore(storeId);
+    }
     return this.productService.findAll();
   }
 
-  @Get('store/:storeId')
-  @HttpCode(HttpStatus.OK)
-  findByStore(@Param('storeId') storeId: string) {
-    return this.productService.findByStore(storeId);
-  }
-
-  @Get('category/:category')
-  @HttpCode(HttpStatus.OK)
-  findByCategory(@Param('category') category: string) {
-    return this.productService.findByCategory(category);
-  }
-
-  @Get('low-stock')
-  @HttpCode(HttpStatus.OK)
-  findLowStock() {
-    return this.productService.findLowStock();
-  }
-
   @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  findById(@Param('id') id: string) {
-    return this.productService.findById(id);
+  findOne(@Param('id') id: string) {
+    return this.productService.findOne(id);
   }
 
-  @Put(':id')
-  @HttpCode(HttpStatus.OK)
-  update(@Param('id') id: string, @Body() payload: UpdateProductDto) {
-    return this.productService.updateProduct(id, payload);
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateProductDto: UpdateProductDto) {
+    return this.productService.update(id, updateProductDto);
   }
-
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  delete(@Param('id') id: string) {
-    return this.productService.deleteProduct(id);
+  remove(@Param('id') id: string) {
+    return this.productService.remove(id);
   }
-} 
+}

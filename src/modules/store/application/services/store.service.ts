@@ -30,20 +30,20 @@ export class StoreService implements IStoreService {
     return store;
   }
 
-  async updateStore(id: string, payload: UpdateStoreDto): Promise<Store | null> {
+  async updateStore(id: string, updateStoreDto: UpdateStoreDto): Promise<Store | null> {
     const existingStore = await this.storeRepository.findById(id);
     if (!existingStore) {
       throw new NotFoundException('Store not found');
     }
 
-    if (payload.name && payload.name !== existingStore.name) {
-      const storeWithName = await this.storeRepository.findByName(payload.name);
+    if (updateStoreDto.name && updateStoreDto.name !== existingStore.name) {
+      const storeWithName = await this.storeRepository.findByName(updateStoreDto.name);
       if (storeWithName) {
         throw new ConflictException('Store name already exists');
       }
     }
 
-    await this.storeRepository.update({ id }, payload);
+    await this.storeRepository.update({ id }, updateStoreDto);
     const updatedStore = await this.storeRepository.findById(id);
 
     return updatedStore;

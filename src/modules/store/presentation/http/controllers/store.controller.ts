@@ -1,54 +1,39 @@
-import {
-  Controller,
-  Post,
-  Body,
-  HttpCode,
-  HttpStatus,
-  Put,
-  Get,
-  Param,
-  Delete,
-  UseGuards
-} from '@nestjs/common';
-import {
-  CreateStoreDto,
-  IStoreService,
-  UpdateStoreDto
-} from '@modules/store/presentation/interfaces/store.interface';
+import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import { StoreService } from '@modules/store/application/services/store.service';
+import { CreateStoreDto } from '@modules/store/presentation/dto/createStore.dto';
+import { UpdateStoreDto } from '@modules/store/presentation/dto/updateStore.dto';
 import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
 
 @Controller('api/v1/stores')
 @UseGuards(JwtAuthGuard)
 export class StoreController {
-  constructor(private readonly storeService: IStoreService) { }
+  constructor(private readonly storeService: StoreService) { }
 
-  @Post('create')
-  @HttpCode(HttpStatus.CREATED)
-  create(@Body() payload: CreateStoreDto) {
-    return this.storeService.createStore(payload);
+  @Post()
+  create(@Body() createStoreDto: CreateStoreDto) {
+    return this.storeService.createStore(createStoreDto);
   }
 
   @Get()
-  @HttpCode(HttpStatus.OK)
-  findAll() {
+  findAll(
+    @Query('search') search?: string,
+    @Query('isActive') isActive?: boolean,
+  ) {
     return this.storeService.findAll();
   }
 
   @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  findById(@Param('id') id: string) {
+  findOne(@Param('id') id: string) {
     return this.storeService.findById(id);
   }
 
-  @Put(':id')
-  @HttpCode(HttpStatus.OK)
-  update(@Param('id') id: string, @Body() payload: UpdateStoreDto) {
-    return this.storeService.updateStore(id, payload);
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateStoreDto: UpdateStoreDto) {
+    return this.storeService.updateStore(id, updateStoreDto);
   }
 
   @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  delete(@Param('id') id: string) {
+  remove(@Param('id') id: string) {
     return this.storeService.deleteStore(id);
   }
-} 
+}

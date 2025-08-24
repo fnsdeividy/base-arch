@@ -1,66 +1,42 @@
-import { Entity, Column, PrimaryColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Store } from '@modules/store/entities/store.entity';
 
-@Entity()
+@Entity('products')
 export class Product {
-  @PrimaryColumn('uuid')
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
   name: string;
 
-  @Column({ type: 'text', nullable: true })
+  @Column({ nullable: true })
   description?: string;
 
   @Column({ type: 'decimal', precision: 10, scale: 2 })
   price: number;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, nullable: true })
-  costPrice?: number;
-
-  @Column({ type: 'int' })
-  stockQuantity: number;
-
-  @Column({ type: 'int', default: 0 })
-  minStockLevel: number;
-
-  @Column({ type: 'varchar', length: 50, nullable: true })
+  @Column({ nullable: true })
   sku?: string;
 
-  @Column({ type: 'varchar', length: 50, nullable: true })
-  barcode?: string;
-
-  @Column({ type: 'varchar', length: 100, nullable: true })
+  @Column({ nullable: true })
   category?: string;
 
-  @Column({ type: 'varchar', length: 100, nullable: true })
-  brand?: string;
-
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  unit?: string;
-
-  @Column({ type: 'decimal', precision: 5, scale: 2, nullable: true })
-  weight?: number;
-
-  @Column({ type: 'varchar', length: 20, nullable: true })
-  weightUnit?: string;
-
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ name: 'image_url', nullable: true })
   imageUrl?: string;
 
-  @Column({ default: true })
+  @Column({ name: 'is_active', default: true })
   isActive: boolean;
 
-  @Column({ type: 'uuid' })
+  @Column({ name: 'store_id' })
   storeId: string;
 
-  @ManyToOne(() => Store, { onDelete: 'CASCADE' })
-  @JoinColumn({ name: 'storeId' })
+  @ManyToOne(() => Store)
+  @JoinColumn({ name: 'store_id' })
   store: Store;
 
-  @CreateDateColumn()
+  @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-} 
+}

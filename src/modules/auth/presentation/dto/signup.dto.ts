@@ -17,4 +17,4 @@ export class SignUpDto {
   @IsOptional()
   @IsString()
   phone?: string;
-} 
+}

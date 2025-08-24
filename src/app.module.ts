@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Controllers e Services HTTP
 import { AppController } from '@shared/presentation/http/controllers/app.controller';
@@ -14,38 +13,45 @@ import { AuthModule } from '@modules/auth/auth.module';
 import { JwtService } from '@shared/application/services/jwt.service';
 import { HashService } from '@shared/application/services/hash.service';
 
-// Entities
-import { User } from '@modules/user/entities/user.entity';
-import { Store } from '@modules/store/entities/store.entity';
-import { Product } from '@modules/product/entities/product.entity';
+// Modules
 import { UserModule } from '@modules/user/user.module';
 import { StoresModule } from '@modules/store/stores.module';
 import { ProductsModule } from '@modules/product/products.module';
+import { CustomersModule } from '@modules/customer/customers.module';
+import { InvoicesModule } from '@modules/invoice/invoices.module';
+import { OrdersModule } from '@modules/order/orders.module';
+import { StockModule } from '@modules/stock/stock.module';
+import { DashboardModule } from '@modules/dashboard/dashboard.module';
+
+// Prisma Module
+import { PrismaModule } from '@modules/prisma';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      envFilePath: '.env',
     }),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      host: process.env.DB_HOST || 'localhost',
-      port: parseInt(process.env.DB_PORT || '5432'),
-      database: process.env.DB_NAME || 'base_backend',
-      username: process.env.DB_USER || 'postgres',
-      password: process.env.DB_PASSWORD || 'password',
-      entities: [User, Store, Product],
-      synchronize: process.env.NODE_ENV !== 'production',
-      logging: process.env.NODE_ENV === 'development',
-    }),
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-secret-key',
-      signOptions: { expiresIn: '15m' },
+    PrismaModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h'
+        },
+      }),
+      inject: [ConfigService],
     }),
     AuthModule,
     UserModule,
     StoresModule,
     ProductsModule,
+    StockModule,
+    CustomersModule,
+    OrdersModule,
+    InvoicesModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [AppService, JwtService, HashService],

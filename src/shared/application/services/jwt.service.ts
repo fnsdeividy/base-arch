@@ -1,61 +1,54 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService as NestJwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 
-export interface TokenPayload {
+export interface JwtPayload {
   userId: string;
   email: string;
-  type: 'access' | 'refresh';
-}
-
-export interface Tokens {
-  accessToken: string;
-  refreshToken: string;
+  iat?: number;
+  exp?: number;
 }
 
 @Injectable()
 export class JwtService {
   constructor(
     private readonly jwtService: NestJwtService,
-
+    private readonly configService: ConfigService,
   ) { }
 
-  generateTokens(userId: string, email: string): Tokens {
-    const accessToken = this.jwtService.sign(
-      { userId, email, type: 'access' },
-      { expiresIn: '15m' },
-    );
+  generateTokens(userId: string, email: string) {
+    const payload: JwtPayload = { userId, email };
 
-    const refreshToken = this.jwtService.sign(
-      { userId, email, type: 'refresh' },
-      { expiresIn: '7d' },
-    );
+    const accessToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+      expiresIn: this.configService.get<string>('JWT_EXPIRES_IN') || '24h',
+    });
+
+    const refreshToken = this.jwtService.sign(payload, {
+      secret: this.configService.get<string>('JWT_SECRET'),
+      expiresIn: '7d',
+    });
 
     return { accessToken, refreshToken };
   }
 
-  async verifyAccessToken(token: string): Promise<TokenPayload | null> {
+  verifyAccessToken(token: string): JwtPayload | null {
     try {
-      const payload = await this.jwtService.verify(token);
-      return payload.type === 'access' ? payload : null;
+      return this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      }) as JwtPayload;
     } catch {
       return null;
     }
   }
 
-  verifyRefreshToken(token: string): TokenPayload | null {
+  verifyRefreshToken(token: string): JwtPayload | null {
     try {
-      const payload = this.jwtService.verify(token);
-      return payload.type === 'refresh' ? payload : null;
+      return this.jwtService.verify(token, {
+        secret: this.configService.get<string>('JWT_SECRET'),
+      }) as JwtPayload;
     } catch {
       return null;
     }
   }
-
-  // async validateSession(
-  //   userId: string,
-  //   refreshToken: string,
-  // ): Promise<boolean> {
-  //   const storedToken = await this.getSession(userId);
-  //   return storedToken === refreshToken;
-  // }
 }

@@ -1,13 +1,10 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ProductController } from '@modules/product/presentation/http/controllers/product.controller'
-
-import {
-  ProductRepository,
-} from '@modules/product/infra/repositories/product.repository';
-import { PRODUCT_REPOSITORY } from '@modules/product/presentation/interfaces/product.interface';
+import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { ProductController } from '@modules/product/presentation/http/controllers/product.controller';
 import { Product } from '@modules/product/entities/product.entity';
 import { ProductService } from './application/services/product.service';
+import { ProductRepository } from './infra/repositories/product.repository';
+import { PRODUCT_REPOSITORY } from './presentation/interfaces/product.interface';
 
 @Module({
   imports: [
@@ -18,7 +15,8 @@ import { ProductService } from './application/services/product.service';
     ProductService,
     {
       provide: PRODUCT_REPOSITORY,
-      useFactory: (productRepository) => new ProductRepository(productRepository)
+      useFactory: (productRepository) => new ProductRepository(productRepository),
+      inject: [getRepositoryToken(Product)],
     },
   ],
   exports: [ProductService],

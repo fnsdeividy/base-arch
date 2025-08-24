@@ -9,7 +9,7 @@ import {
   UserRepository,
 } from '@modules/user/infra/repositories/user.repository';
 import { USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
-import { User } from '@modules/user/entities/user.model';
+import { User } from '@modules/user/entities/user.entity';
 
 @Module({
   imports: [
