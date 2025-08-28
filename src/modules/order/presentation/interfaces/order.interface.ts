@@ -10,14 +10,22 @@ export interface IOrderRepository {
   create(data: Partial<Order>): Promise<Order>;
   findById(id: string): Promise<Order | null>;
   findByOrderNumber(orderNumber: string): Promise<Order | null>;
-  findAll(filters?: { status?: OrderStatus; customerId?: string; storeId?: string }): Promise<Order[]>;
+  findAll(filters?: {
+    status?: OrderStatus;
+    customerId?: string;
+    storeId?: string;
+  }): Promise<Order[]>;
   update(criteria: Partial<Order>, data: Partial<Order>): Promise<void>;
   delete(criteria: Partial<Order>): Promise<void>;
 }
 
 export interface IOrderService {
   create(createOrderDto: CreateOrderDto): Promise<Order>;
-  findAll(filters?: { status?: OrderStatus; customerId?: string; storeId?: string }): Promise<Order[]>;
+  findAll(filters?: {
+    status?: OrderStatus;
+    customerId?: string;
+    storeId?: string;
+  }): Promise<Order[]>;
   findOne(id: string): Promise<Order>;
   update(id: string, updateOrderDto: UpdateOrderDto): Promise<Order>;
   remove(id: string): Promise<void>;

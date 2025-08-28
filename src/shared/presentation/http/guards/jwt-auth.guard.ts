@@ -1,10 +1,15 @@
-import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
-import { JwtService } from '@shared/application/services/jwt.service';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { Request } from 'express';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) { }
+  constructor(private readonly jwtService: JwtService) {}
 
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<Request>();
@@ -14,14 +19,15 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Token not found');
     }
 
-    const payload = this.jwtService.verifyAccessToken(token);
-
-    if (!payload) {
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET || 'your-secret-key',
+      });
+      request['user'] = payload;
+      return true;
+    } catch {
       throw new UnauthorizedException('Invalid token');
     }
-
-    request['user'] = payload;
-    return true;
   }
 
   private extractTokenFromHeader(request: Request): string | undefined {

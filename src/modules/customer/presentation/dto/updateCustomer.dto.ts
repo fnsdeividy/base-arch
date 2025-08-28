@@ -48,4 +48,4 @@ export class UpdateCustomerDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
-} 
+}

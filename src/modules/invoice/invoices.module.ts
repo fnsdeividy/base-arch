@@ -1,24 +1,25 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { InvoiceController } from '@modules/invoice/presentation/http/controllers/invoice.controller';
-import { InvoiceRepository } from '@modules/invoice/infra/repositories/invoice.repository';
-import { INVOICE_REPOSITORY } from '@modules/invoice/presentation/interfaces/invoice.interface';
-import { Invoice } from '@modules/invoice/entities/invoice.entity';
 import { InvoiceService } from './application/services/invoice.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Invoice])
+    ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [InvoiceController],
-  providers: [
-    InvoiceService,
-    {
-      provide: INVOICE_REPOSITORY,
-      useFactory: (invoiceRepository) => new InvoiceRepository(invoiceRepository),
-      inject: [getRepositoryToken(Invoice)],
-    },
-  ],
+  providers: [InvoiceService],
   exports: [InvoiceService],
 })
 export class InvoicesModule { }

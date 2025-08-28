@@ -1,4 +1,11 @@
-import { IsString, IsUUID, IsNumber, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsUUID,
+  IsNumber,
+  IsOptional,
+  IsEnum,
+  IsDateString,
+} from 'class-validator';
 import { InvoiceStatus } from '@modules/invoice/entities/invoice.entity';
 
 export class CreateInvoiceDto {

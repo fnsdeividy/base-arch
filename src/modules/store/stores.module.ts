@@ -1,24 +1,25 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StoreController } from '@modules/store/presentation/http/controllers/store.controller';
-import { StoreRepository } from '@modules/store/infra/repositories/store.repository';
-import { STORE_REPOSITORY } from '@modules/store/presentation/interfaces/store.interface';
-import { Store } from '@modules/store/entities/store.entity';
 import { StoreService } from './application/services/store.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Store])
+    ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [StoreController],
-  providers: [
-    StoreService,
-    {
-      provide: STORE_REPOSITORY,
-      useFactory: (storeRepository) => new StoreRepository(storeRepository),
-      inject: [getRepositoryToken(Store)],
-    },
-  ],
+  providers: [StoreService],
   exports: [StoreService],
 })
 export class StoresModule { }

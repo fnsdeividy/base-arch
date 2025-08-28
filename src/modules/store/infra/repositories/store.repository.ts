@@ -5,7 +5,7 @@ import { IStoreRepository } from '@modules/store/presentation/interfaces/store.i
 
 @Injectable()
 export class StoreRepository implements IStoreRepository {
-  constructor(private readonly repository: Repository<Store>) { }
+  constructor(private readonly repository: Repository<Store>) {}
 
   async create(data: Partial<Store>): Promise<Store> {
     const store = this.repository.create(data);
@@ -23,7 +23,7 @@ export class StoreRepository implements IStoreRepository {
   async list(): Promise<Store[]> {
     return await this.repository.find({
       where: { isActive: true },
-      order: { createdAt: 'DESC' }
+      order: { createdAt: 'DESC' },
     });
   }
 

@@ -19,6 +19,9 @@ export interface IStoreService {
   createStore(createStoreDto: CreateStoreDto): Promise<Store>;
   findAll(): Promise<Store[]>;
   findById(id: string): Promise<Store | null>;
-  updateStore(id: string, updateStoreDto: UpdateStoreDto): Promise<Store | null>;
+  updateStore(
+    id: string,
+    updateStoreDto: UpdateStoreDto,
+  ): Promise<Store | null>;
   deleteStore(id: string): Promise<void>;
 }

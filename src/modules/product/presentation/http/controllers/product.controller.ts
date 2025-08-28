@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { ProductService } from '@modules/product/application/services/product.service';
 import { CreateProductDto } from '@modules/product/presentation/dto/createProduct.dto';
 import { UpdateProductDto } from '@modules/product/presentation/dto/updateProduct.dto';
@@ -7,7 +17,7 @@ import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
 @Controller('api/v1/products')
 @UseGuards(JwtAuthGuard)
 export class ProductController {
-  constructor(private readonly productService: ProductService) { }
+  constructor(private readonly productService: ProductService) {}
 
   @Post()
   create(@Body() createProductDto: CreateProductDto) {
@@ -15,7 +25,10 @@ export class ProductController {
   }
 
   @Get()
-  findAll(@Query('category') category?: string, @Query('storeId') storeId?: string) {
+  findAll(
+    @Query('category') category?: string,
+    @Query('storeId') storeId?: string,
+  ) {
     if (category) {
       return this.productService.findByCategory(category);
     }

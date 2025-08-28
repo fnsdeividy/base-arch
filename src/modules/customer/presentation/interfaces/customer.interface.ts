@@ -10,14 +10,20 @@ export interface ICustomerRepository {
   create(data: Partial<Customer>): Promise<Customer>;
   findById(id: string): Promise<Customer | null>;
   findByEmail(email: string): Promise<Customer | null>;
-  findAll(filters?: { search?: string; isActive?: boolean }): Promise<Customer[]>;
+  findAll(filters?: {
+    search?: string;
+    isActive?: boolean;
+  }): Promise<Customer[]>;
   update(criteria: Partial<Customer>, data: Partial<Customer>): Promise<void>;
   delete(criteria: Partial<Customer>): Promise<void>;
 }
 
 export interface ICustomerService {
   create(createCustomerDto: CreateCustomerDto): Promise<Customer>;
-  findAll(filters?: { search?: string; isActive?: boolean }): Promise<Customer[]>;
+  findAll(filters?: {
+    search?: string;
+    isActive?: boolean;
+  }): Promise<Customer[]>;
   findOne(id: string): Promise<Customer>;
   update(id: string, updateCustomerDto: UpdateCustomerDto): Promise<Customer>;
   remove(id: string): Promise<void>;

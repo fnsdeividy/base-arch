@@ -1,26 +1,26 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UserController } from '@modules/user/presentation/http/controllers/user.controller';
-import { UserRepository } from '@modules/user/infra/repositories/user.repository';
-import { USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
-import { User } from '@modules/user/entities/user.entity';
 import { UserService } from './application/services/user.service';
 import { HashService } from '@shared/application/services/hash.service';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User])
+    ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [UserController],
-  providers: [
-    UserService,
-    HashService,
-    {
-      provide: USER_REPOSITORY,
-      useFactory: (userRepository) => new UserRepository(userRepository),
-      inject: [getRepositoryToken(User)],
-    },
-  ],
+  providers: [UserService, HashService],
   exports: [UserService],
 })
-export class UserModule { }
+export class UserModule {}

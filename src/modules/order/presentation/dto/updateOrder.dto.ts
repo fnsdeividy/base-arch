@@ -1,4 +1,12 @@
-import { IsString, IsUUID, IsNumber, IsOptional, IsEnum, IsArray, ValidateNested } from 'class-validator';
+import {
+  IsString,
+  IsUUID,
+  IsNumber,
+  IsOptional,
+  IsEnum,
+  IsArray,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { OrderStatus } from '@modules/order/entities/order.entity';
 

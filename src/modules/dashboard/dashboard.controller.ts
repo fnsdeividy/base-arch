@@ -5,7 +5,7 @@ import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
 @Controller('api/v1/dashboard')
 @UseGuards(JwtAuthGuard)
 export class DashboardController {
-  constructor(private readonly dashboardService: DashboardService) { }
+  constructor(private readonly dashboardService: DashboardService) {}
 
   @Get('metrics')
   async getMetrics() {

@@ -5,7 +5,7 @@ import { IUserRepository } from '@modules/user/presentation/interfaces/user.inte
 
 @Injectable()
 export class UserRepository implements IUserRepository {
-  constructor(private readonly repository: Repository<User>) { }
+  constructor(private readonly repository: Repository<User>) {}
 
   async create(data: Partial<User>): Promise<User> {
     const user = this.repository.create(data);

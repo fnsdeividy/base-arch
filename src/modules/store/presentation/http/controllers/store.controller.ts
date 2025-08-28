@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { StoreService } from '@modules/store/application/services/store.service';
 import { CreateStoreDto } from '@modules/store/presentation/dto/createStore.dto';
 import { UpdateStoreDto } from '@modules/store/presentation/dto/updateStore.dto';
@@ -7,7 +17,7 @@ import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
 @Controller('api/v1/stores')
 @UseGuards(JwtAuthGuard)
 export class StoreController {
-  constructor(private readonly storeService: StoreService) { }
+  constructor(private readonly storeService: StoreService) {}
 
   @Post()
   create(@Body() createStoreDto: CreateStoreDto) {

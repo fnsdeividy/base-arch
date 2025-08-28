@@ -5,7 +5,7 @@ import { IOrderRepository } from '@modules/order/presentation/interfaces/order.i
 
 @Injectable()
 export class OrderRepository implements IOrderRepository {
-  constructor(private readonly repository: Repository<Order>) { }
+  constructor(private readonly repository: Repository<Order>) {}
 
   async create(data: Partial<Order>): Promise<Order> {
     const order = this.repository.create(data);
@@ -15,7 +15,7 @@ export class OrderRepository implements IOrderRepository {
   async findById(id: string): Promise<Order | null> {
     return await this.repository.findOne({
       where: { id },
-      relations: ['customer', 'store']
+      relations: ['customer', 'store'],
     });
   }
 
@@ -26,27 +26,32 @@ export class OrderRepository implements IOrderRepository {
   async findAll(filters?: {
     status?: OrderStatus;
     customerId?: string;
-    storeId?: string
+    storeId?: string;
   }): Promise<Order[]> {
-    const queryBuilder = this.repository.createQueryBuilder('order')
+    const queryBuilder = this.repository
+      .createQueryBuilder('order')
       .leftJoinAndSelect('order.customer', 'customer')
       .leftJoinAndSelect('order.store', 'store');
 
     if (filters?.status) {
-      queryBuilder.andWhere('order.status = :status', { status: filters.status });
+      queryBuilder.andWhere('order.status = :status', {
+        status: filters.status,
+      });
     }
 
     if (filters?.customerId) {
-      queryBuilder.andWhere('order.customerId = :customerId', { customerId: filters.customerId });
+      queryBuilder.andWhere('order.customerId = :customerId', {
+        customerId: filters.customerId,
+      });
     }
 
     if (filters?.storeId) {
-      queryBuilder.andWhere('order.storeId = :storeId', { storeId: filters.storeId });
+      queryBuilder.andWhere('order.storeId = :storeId', {
+        storeId: filters.storeId,
+      });
     }
 
-    return await queryBuilder
-      .orderBy('order.createdAt', 'DESC')
-      .getMany();
+    return await queryBuilder.orderBy('order.createdAt', 'DESC').getMany();
   }
 
   async update(criteria: Partial<Order>, data: Partial<Order>): Promise<void> {

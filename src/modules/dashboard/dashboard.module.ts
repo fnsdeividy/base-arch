@@ -1,15 +1,22 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DashboardController } from './dashboard.controller';
 import { DashboardService } from './dashboard.service';
-import { Order } from '@modules/order/entities/order.entity';
-import { Customer } from '@modules/customer/entities/customer.entity';
-import { Product } from '@modules/product/entities/product.entity';
-import { Stock } from '@modules/stock/entities/stock.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Order, Customer, Product, Stock])
+    ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [DashboardController],
   providers: [DashboardService],

@@ -2,27 +2,25 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
-  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@shared/application/services/jwt.service';
 import { HashService } from '@shared/application/services/hash.service';
-import { IUserRepository, USER_REPOSITORY } from '@modules/user/presentation/interfaces/user.interface';
 import { SignInDto } from '@modules/auth/presentation/dto/signin.dto';
 import { SignUpDto } from '@modules/auth/presentation/dto/signup.dto';
-import { IAuthService } from '@modules/auth/presentation/interfaces/auth.interface';
-import { randomUUID } from 'crypto';
+import { PrismaService } from '@modules/prisma';
 
 @Injectable()
-export class AuthService implements IAuthService {
+export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly hashService: HashService,
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: IUserRepository,
-  ) { }
+    private readonly prisma: PrismaService,
+  ) {}
 
   async signIn(signInDto: SignInDto) {
-    const user = await this.userRepository.findByEmail(signInDto.email);
+    const user = await this.prisma.user.findUnique({
+      where: { email: signInDto.email },
+    });
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -30,20 +28,20 @@ export class AuthService implements IAuthService {
 
     const isPasswordValid = await this.hashService.compare(
       signInDto.password,
-      user.password || '',
+      user.password,
     );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
+    const tokens = this.jwtService.generateTokens(user.id, user.email);
 
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user: {
-        id: user.id.toString(),
+        id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -52,7 +50,9 @@ export class AuthService implements IAuthService {
   }
 
   async signUp(signUpDto: SignUpDto) {
-    const existingUser = await this.userRepository.findByEmail(signUpDto.email);
+    const existingUser = await this.prisma.user.findUnique({
+      where: { email: signUpDto.email },
+    });
 
     if (existingUser) {
       throw new ConflictException('User already exists');
@@ -60,19 +60,20 @@ export class AuthService implements IAuthService {
 
     const hashedPassword = await this.hashService.hash(signUpDto.password);
 
-    const user = await this.userRepository.create({
-      id: randomUUID(),
-      ...signUpDto,
-      password: hashedPassword,
+    const user = await this.prisma.user.create({
+      data: {
+        ...signUpDto,
+        password: hashedPassword,
+      },
     });
 
-    const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
+    const tokens = this.jwtService.generateTokens(user.id, user.email);
 
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user: {
-        id: user.id.toString(),
+        id: user.id,
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
@@ -91,13 +92,15 @@ export class AuthService implements IAuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    const user = await this.userRepository.findBy('id', payload.userId);
+    const user = await this.prisma.user.findUnique({
+      where: { id: payload.userId },
+    });
 
     if (!user) {
       throw new UnauthorizedException('User not found');
     }
 
-    const tokens = this.jwtService.generateTokens(user.id.toString(), user.email);
+    const tokens = this.jwtService.generateTokens(user.id, user.email);
 
     return {
       accessToken: tokens.accessToken,

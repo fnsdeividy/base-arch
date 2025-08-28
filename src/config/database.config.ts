@@ -8,7 +8,9 @@ import { Invoice } from '@modules/invoice/entities/invoice.entity';
 import { Order } from '@modules/order/entities/order.entity';
 import { Stock } from '@modules/stock/entities/stock.entity';
 
-export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOptions => ({
+export const getDatabaseConfig = (
+  configService: ConfigService,
+): TypeOrmModuleOptions => ({
   type: 'postgres',
   host: configService.get<string>('DB_HOST') || 'localhost',
   port: configService.get<number>('DB_PORT') || 5433,
@@ -18,7 +20,10 @@ export const getDatabaseConfig = (configService: ConfigService): TypeOrmModuleOp
   entities: [User, Store, Product, Customer, Invoice, Order, Stock],
   synchronize: configService.get<string>('NODE_ENV') === 'development',
   logging: configService.get<string>('NODE_ENV') === 'development',
-  ssl: configService.get<string>('NODE_ENV') === 'production' ? { rejectUnauthorized: false } : false,
+  ssl:
+    configService.get<string>('NODE_ENV') === 'production'
+      ? { rejectUnauthorized: false }
+      : false,
   migrations: ['dist/database/migrations/*.js'],
   migrationsTableName: 'migrations',
 });

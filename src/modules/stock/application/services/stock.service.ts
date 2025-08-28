@@ -1,115 +1,259 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { Stock } from '@modules/stock/entities/stock.entity';
-import { CreateStockDto } from '@modules/stock/presentation/dto/createStock.dto';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
+import {
+  CreateStockDto,
+  StockStatus,
+} from '@modules/stock/presentation/dto/createStock.dto';
 import { UpdateStockDto } from '@modules/stock/presentation/dto/updateStock.dto';
-import { IStockService, IStockRepository, STOCK_REPOSITORY } from '@modules/stock/presentation/interfaces/stock.interface';
+import { PrismaService } from '@modules/prisma';
 
 @Injectable()
-export class StockService implements IStockService {
-  constructor(
-    @Inject(STOCK_REPOSITORY)
-    private readonly stockRepository: IStockRepository,
-  ) { }
+export class StockService {
+  constructor(private readonly prisma: PrismaService) {}
 
-  async createStock(createStockDto: CreateStockDto): Promise<Stock> {
-    const stock = await this.stockRepository.create(createStockDto);
-    return stock;
+  async createStock(createStockDto: CreateStockDto) {
+    // Validações adicionais
+    if (
+      createStockDto.maxQuantity &&
+      createStockDto.quantity > createStockDto.maxQuantity
+    ) {
+      throw new BadRequestException(
+        'Quantity cannot be greater than maxQuantity',
+      );
+    }
+
+    if (
+      createStockDto.minQuantity &&
+      createStockDto.quantity < createStockDto.minQuantity
+    ) {
+      throw new BadRequestException('Quantity cannot be less than minQuantity');
+    }
+
+    return this.prisma.stock.create({
+      data: {
+        ...createStockDto,
+        minQuantity: createStockDto.minQuantity || 0,
+        status: createStockDto.status || StockStatus.ACTIVE,
+      },
+      include: {
+        product: true,
+        store: true,
+      },
+    });
   }
 
-  async findAll(): Promise<Stock[]> {
-    return await this.stockRepository.findAll();
+  async findAll() {
+    return this.prisma.stock.findMany({
+      include: {
+        product: true,
+        store: true,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
   }
 
-  async findById(id: string): Promise<Stock | null> {
-    return await this.stockRepository.findById(id);
-  }
+  async findById(id: string) {
+    const stock = await this.prisma.stock.findUnique({
+      where: { id },
+      include: {
+        product: true,
+        store: true,
+      },
+    });
 
-  async findByProduct(productId: string): Promise<Stock[]> {
-    return await this.stockRepository.findByProduct(productId);
-  }
-
-  async findByStore(storeId: string): Promise<Stock[]> {
-    return await this.stockRepository.findByStore(storeId);
-  }
-
-  async findByStatus(status: string): Promise<Stock[]> {
-    return await this.stockRepository.findByStatus(status);
-  }
-
-  async findLowStock(): Promise<Stock[]> {
-    return await this.stockRepository.findLowStock();
-  }
-
-  async updateStock(id: string, updateStockDto: UpdateStockDto): Promise<Stock | null> {
-    const stock = await this.findById(id);
     if (!stock) {
       throw new NotFoundException('Stock not found');
     }
 
-    const updatedStock = await this.stockRepository.update(id, updateStockDto);
-    return updatedStock;
+    return stock;
+  }
+
+  async findByProduct(productId: string) {
+    return this.prisma.stock.findMany({
+      where: { productId },
+      include: {
+        product: true,
+        store: true,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+  }
+
+  async findByStore(storeId: string) {
+    return this.prisma.stock.findMany({
+      where: { storeId },
+      include: {
+        product: true,
+        store: true,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+  }
+
+  async findByStatus(status: string) {
+    return this.prisma.stock.findMany({
+      where: { status },
+      include: {
+        product: true,
+        store: true,
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+    });
+  }
+
+  async findLowStock(threshold: number = 10) {
+    return this.prisma.stock.findMany({
+      where: {
+        quantity: {
+          lte: threshold,
+        },
+        status: StockStatus.ACTIVE,
+      },
+      include: {
+        product: true,
+        store: true,
+      },
+      orderBy: {
+        quantity: 'asc',
+      },
+    });
+  }
+
+  async updateStock(id: string, updateStockDto: UpdateStockDto) {
+    const stock = await this.findById(id);
+
+    // Validações adicionais
+    if (
+      updateStockDto.maxQuantity &&
+      updateStockDto.quantity &&
+      updateStockDto.quantity > updateStockDto.maxQuantity
+    ) {
+      throw new BadRequestException(
+        'Quantity cannot be greater than maxQuantity',
+      );
+    }
+
+    if (
+      updateStockDto.minQuantity &&
+      updateStockDto.quantity &&
+      updateStockDto.quantity < updateStockDto.minQuantity
+    ) {
+      throw new BadRequestException('Quantity cannot be less than minQuantity');
+    }
+
+    return this.prisma.stock.update({
+      where: { id },
+      data: updateStockDto,
+      include: {
+        product: true,
+        store: true,
+      },
+    });
   }
 
   async deleteStock(id: string): Promise<void> {
     const stock = await this.findById(id);
-    if (!stock) {
-      throw new NotFoundException('Stock not found');
-    }
-
-    await this.stockRepository.delete(id);
+    await this.prisma.stock.delete({
+      where: { id },
+    });
   }
 
-  async updateQuantity(id: string, quantity: number): Promise<Stock> {
+  async updateQuantity(id: string, quantity: number) {
+    if (quantity < 0) {
+      throw new BadRequestException('Quantity cannot be negative');
+    }
+
     const stock = await this.findById(id);
-    if (!stock) {
-      throw new NotFoundException('Stock not found');
-    }
-
-    const updatedStock = await this.stockRepository.update(id, { quantity });
-    if (!updatedStock) {
-      throw new NotFoundException('Stock not found after update');
-    }
-
-    return updatedStock;
+    return this.prisma.stock.update({
+      where: { id },
+      data: { quantity },
+      include: {
+        product: true,
+        store: true,
+      },
+    });
   }
 
   // Métodos de compatibilidade com o controller existente
-  async create(createStockDto: CreateStockDto): Promise<Stock> {
+  async create(createStockDto: CreateStockDto) {
     return this.createStock(createStockDto);
   }
 
-  async findOne(id: string): Promise<Stock> {
-    const stock = await this.findById(id);
-    if (!stock) {
-      throw new NotFoundException('Stock not found');
-    }
-    return stock;
+  async findOne(id: string) {
+    return this.findById(id);
   }
 
-  async update(id: string, updateStockDto: UpdateStockDto): Promise<Stock> {
-    const stock = await this.updateStock(id, updateStockDto);
-    if (!stock) {
-      throw new NotFoundException('Stock not found after update');
-    }
-    return stock;
+  async update(id: string, updateStockDto: UpdateStockDto) {
+    return this.updateStock(id, updateStockDto);
   }
 
   async remove(id: string): Promise<void> {
     await this.deleteStock(id);
   }
 
-  async updateQuantityByProductAndStore(productId: string, storeId: string, quantity: number): Promise<Stock> {
-    const stock = await this.stockRepository.findByStoreAndProduct(storeId, productId);
+  async updateQuantityByProductAndStore(
+    productId: string,
+    storeId: string,
+    quantity: number,
+  ) {
+    if (quantity < 0) {
+      throw new BadRequestException('Quantity cannot be negative');
+    }
+
+    const stock = await this.prisma.stock.findFirst({
+      where: {
+        productId,
+        storeId,
+      },
+      include: {
+        product: true,
+        store: true,
+      },
+    });
 
     if (!stock) {
       throw new NotFoundException('Stock entry not found');
     }
 
-    const updatedStock = await this.stockRepository.update(stock.id, { quantity });
-    if (!updatedStock) {
-      throw new NotFoundException('Stock not found after update');
-    }
+    return this.prisma.stock.update({
+      where: { id: stock.id },
+      data: { quantity },
+      include: {
+        product: true,
+        store: true,
+      },
+    });
+  }
 
-    return updatedStock;
+  // Método para buscar estoque com alertas
+  async getStockAlerts() {
+    const lowStock = await this.findLowStock();
+    const outOfStock = await this.prisma.stock.findMany({
+      where: {
+        quantity: 0,
+        status: StockStatus.ACTIVE,
+      },
+      include: {
+        product: true,
+        store: true,
+      },
+    });
+
+    return {
+      lowStock,
+      outOfStock,
+      totalAlerts: lowStock.length + outOfStock.length,
+    };
   }
 }

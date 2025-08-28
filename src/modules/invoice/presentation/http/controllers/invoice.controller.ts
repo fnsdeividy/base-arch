@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { InvoiceService } from '@modules/invoice/application/services/invoice.service';
 import { CreateInvoiceDto } from '@modules/invoice/presentation/dto/createInvoice.dto';
 import { UpdateInvoiceDto } from '@modules/invoice/presentation/dto/updateInvoice.dto';
@@ -8,7 +18,7 @@ import { InvoiceStatus } from '@modules/invoice/entities/invoice.entity';
 @Controller('api/v1/invoices')
 @UseGuards(JwtAuthGuard)
 export class InvoiceController {
-  constructor(private readonly invoiceService: InvoiceService) { }
+  constructor(private readonly invoiceService: InvoiceService) {}
 
   @Post()
   create(@Body() createInvoiceDto: CreateInvoiceDto) {

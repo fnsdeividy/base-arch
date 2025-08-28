@@ -1,24 +1,25 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ProductController } from '@modules/product/presentation/http/controllers/product.controller';
-import { Product } from '@modules/product/entities/product.entity';
 import { ProductService } from './application/services/product.service';
-import { ProductRepository } from './infra/repositories/product.repository';
-import { PRODUCT_REPOSITORY } from './presentation/interfaces/product.interface';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Product])
+    ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [ProductController],
-  providers: [
-    ProductService,
-    {
-      provide: PRODUCT_REPOSITORY,
-      useFactory: (productRepository) => new ProductRepository(productRepository),
-      inject: [getRepositoryToken(Product)],
-    },
-  ],
+  providers: [ProductService],
   exports: [ProductService],
 })
 export class ProductsModule { }

@@ -1,4 +1,12 @@
-import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Request } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from '@modules/auth/application/services/auth.service';
 import { SignInDto } from '@modules/auth/presentation/dto/signin.dto';
 import { SignUpDto } from '@modules/auth/presentation/dto/signup.dto';
@@ -7,7 +15,7 @@ import { AuthenticatedRequest } from '@modules/user/presentation/interfaces/user
 
 @Controller('api/v1/auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) { }
+  constructor(private readonly authService: AuthService) {}
 
   @Post('signin')
   @HttpCode(HttpStatus.OK)

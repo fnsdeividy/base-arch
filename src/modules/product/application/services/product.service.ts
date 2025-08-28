@@ -1,27 +1,39 @@
-import { Injectable, Inject, NotFoundException } from '@nestjs/common';
-import { Product } from '@modules/product/entities/product.entity';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateProductDto } from '@modules/product/presentation/dto/createProduct.dto';
 import { UpdateProductDto } from '@modules/product/presentation/dto/updateProduct.dto';
-import { IProductService, IProductRepository, PRODUCT_REPOSITORY } from '@modules/product/presentation/interfaces/product.interface';
+import { PrismaService } from '@modules/prisma/prisma.service';
 
 @Injectable()
-export class ProductService implements IProductService {
+export class ProductService {
   constructor(
-    @Inject(PRODUCT_REPOSITORY)
-    private readonly productRepository: IProductRepository,
+    private readonly prisma: PrismaService,
   ) { }
 
-  async create(createProductDto: CreateProductDto): Promise<Product> {
-    const product = await this.productRepository.create(createProductDto);
+  async create(createProductDto: CreateProductDto) {
+    const product = await this.prisma.product.create({
+      data: {
+        name: createProductDto.name,
+        description: createProductDto.description,
+        sku: createProductDto.sku || '',
+        price: createProductDto.price as any,
+        category: createProductDto.category || '',
+        isActive: createProductDto.isActive ?? true,
+        storeId: createProductDto.storeId,
+      },
+    });
     return product;
   }
 
-  async findAll(): Promise<Product[]> {
-    return await this.productRepository.findAll();
+  async findAll() {
+    return await this.prisma.product.findMany({
+      where: { isActive: true },
+    });
   }
 
-  async findOne(id: string): Promise<Product> {
-    const product = await this.productRepository.findById(id);
+  async findOne(id: string) {
+    const product = await this.prisma.product.findUnique({
+      where: { id },
+    });
 
     if (!product) {
       throw new NotFoundException('Product not found');
@@ -30,29 +42,42 @@ export class ProductService implements IProductService {
     return product;
   }
 
-  async update(id: string, updateProductDto: UpdateProductDto): Promise<Product> {
+  async update(
+    id: string,
+    updateProductDto: UpdateProductDto,
+  ) {
     const product = await this.findOne(id);
 
-    await this.productRepository.update({ id }, updateProductDto);
-
-    const updatedProduct = await this.productRepository.findById(id);
-    if (!updatedProduct) {
-      throw new NotFoundException('Product not found after update');
-    }
+    const updatedProduct = await this.prisma.product.update({
+      where: { id },
+      data: updateProductDto,
+    });
 
     return updatedProduct;
   }
 
   async remove(id: string): Promise<void> {
     const product = await this.findOne(id);
-    await this.productRepository.delete({ id });
+    await this.prisma.product.delete({
+      where: { id },
+    });
   }
 
-  async findByCategory(category: string): Promise<Product[]> {
-    return await this.productRepository.findByCategory(category);
+  async findByCategory(category: string) {
+    return await this.prisma.product.findMany({
+      where: {
+        category,
+        isActive: true,
+      },
+    });
   }
 
-  async findByStore(storeId: string): Promise<Product[]> {
-    return await this.productRepository.findByStore(storeId);
+  async findByStore(storeId: string) {
+    return await this.prisma.product.findMany({
+      where: {
+        storeId,
+        isActive: true,
+      },
+    });
   }
 }

@@ -1,4 +1,14 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
 import { OrderService } from '@modules/order/application/services/order.service';
 import { CreateOrderDto } from '@modules/order/presentation/dto/createOrder.dto';
 import { UpdateOrderDto } from '@modules/order/presentation/dto/updateOrder.dto';
@@ -8,7 +18,7 @@ import { OrderStatus } from '@modules/order/entities/order.entity';
 @Controller('api/v1/orders')
 @UseGuards(JwtAuthGuard)
 export class OrderController {
-  constructor(private readonly orderService: OrderService) { }
+  constructor(private readonly orderService: OrderService) {}
 
   @Post()
   create(@Body() createOrderDto: CreateOrderDto) {

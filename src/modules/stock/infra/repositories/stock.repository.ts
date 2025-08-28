@@ -5,7 +5,7 @@ import { IStockRepository } from '@modules/stock/presentation/interfaces/stock.i
 
 @Injectable()
 export class StockRepository implements IStockRepository {
-  constructor(private readonly repository: Repository<Stock>) { }
+  constructor(private readonly repository: Repository<Stock>) {}
 
   async create(data: Partial<Stock>): Promise<Stock> {
     const stock = this.repository.create(data);
@@ -44,7 +44,10 @@ export class StockRepository implements IStockRepository {
     });
   }
 
-  async findByStoreAndProduct(storeId: string, productId: string): Promise<Stock | null> {
+  async findByStoreAndProduct(
+    storeId: string,
+    productId: string,
+  ): Promise<Stock | null> {
     return await this.repository.findOne({
       where: { storeId, productId },
       relations: ['product', 'store'],

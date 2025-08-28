@@ -1,26 +1,20 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, MoreThanOrEqual, LessThan, Between } from 'typeorm';
-import { Order } from '@modules/order/entities/order.entity';
-import { Customer } from '@modules/customer/entities/customer.entity';
-import { Product } from '@modules/product/entities/product.entity';
-import { Stock } from '@modules/stock/entities/stock.entity';
+import { PrismaService } from '@modules/prisma/prisma.service';
 
 @Injectable()
 export class DashboardService {
   constructor(
-    @InjectRepository(Order)
-    private readonly orderRepository: Repository<Order>,
-    @InjectRepository(Customer)
-    private readonly customerRepository: Repository<Customer>,
-    @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
-    @InjectRepository(Stock)
-    private readonly stockRepository: Repository<Stock>,
+    private readonly prisma: PrismaService,
   ) { }
 
   async getMetrics() {
-    const [totalRevenue, totalOrders, activeCustomers, productsInStock, lowStockProducts] = await Promise.all([
+    const [
+      totalRevenue,
+      totalOrders,
+      activeCustomers,
+      productsInStock,
+      lowStockProducts,
+    ] = await Promise.all([
       this.getTotalRevenue(),
       this.getTotalOrders(),
       this.getActiveCustomers(),
@@ -31,31 +25,42 @@ export class DashboardService {
     return {
       totalRevenue: {
         value: totalRevenue.current,
-        change: this.calculatePercentageChange(totalRevenue.previous, totalRevenue.current),
-        label: 'Receita Total'
+        change: this.calculatePercentageChange(
+          totalRevenue.previous,
+          totalRevenue.current,
+        ),
+        label: 'Receita Total',
       },
       totalOrders: {
         value: totalOrders.current,
-        change: this.calculatePercentageChange(totalOrders.previous, totalOrders.current),
-        label: 'Vendas'
+        change: this.calculatePercentageChange(
+          totalOrders.previous,
+          totalOrders.current,
+        ),
+        label: 'Vendas',
       },
       activeCustomers: {
         value: activeCustomers.current,
-        change: this.calculatePercentageChange(activeCustomers.previous, activeCustomers.current),
-        label: 'Clientes Ativos'
+        change: this.calculatePercentageChange(
+          activeCustomers.previous,
+          activeCustomers.current,
+        ),
+        label: 'Clientes Ativos',
       },
       productsInStock: {
         value: productsInStock,
         lowStock: lowStockProducts,
-        label: 'Produtos em Estoque'
-      }
+        label: 'Produtos em Estoque',
+      },
     };
   }
 
   async getRecentSales() {
-    const recentOrders = await this.orderRepository.find({
-      relations: ['customer'],
-      order: { createdAt: 'DESC' },
+    const recentOrders = await this.prisma.order.findMany({
+      include: {
+        customer: true,
+      },
+      orderBy: { createdAt: 'desc' },
       take: 5,
     });
 
@@ -65,7 +70,7 @@ export class DashboardService {
         name: `${order.customer.firstName} ${order.customer.lastName}`,
         email: order.customer.email,
       },
-      amount: order.total,
+      amount: order.totalAmount,
       status: order.status,
       createdAt: order.createdAt,
     }));
@@ -75,19 +80,33 @@ export class DashboardService {
     const sixMonthsAgo = new Date();
     sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-    const salesData = await this.orderRepository
-      .createQueryBuilder('order')
-      .select('DATE_TRUNC(\'month\', order.created_at)', 'month')
-      .addSelect('SUM(order.total)', 'revenue')
-      .addSelect('COUNT(*)', 'orders')
-      .where('order.created_at >= :date', { date: sixMonthsAgo })
-      .groupBy('DATE_TRUNC(\'month\', order.created_at)')
-      .orderBy('month', 'ASC')
-      .getRawMany();
+    const salesData = await this.prisma.$queryRaw`
+      SELECT 
+        DATE_TRUNC('month', "created_at") as month,
+        SUM("total_amount") as revenue,
+        COUNT(*) as orders
+      FROM orders 
+      WHERE "created_at" >= ${sixMonthsAgo}
+      GROUP BY DATE_TRUNC('month', "created_at")
+      ORDER BY month ASC
+    `;
 
-    const months = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+    const months = [
+      'Jan',
+      'Fev',
+      'Mar',
+      'Abr',
+      'Mai',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Set',
+      'Out',
+      'Nov',
+      'Dez',
+    ];
 
-    return salesData.map(data => ({
+    return (salesData as any[]).map(data => ({
       month: months[new Date(data.month).getMonth()],
       revenue: parseFloat(data.revenue) || 0,
       orders: parseInt(data.orders) || 0,
@@ -102,24 +121,32 @@ export class DashboardService {
     previousMonth.setMonth(previousMonth.getMonth() - 1);
 
     const [current, previous] = await Promise.all([
-      this.orderRepository
-        .createQueryBuilder('order')
-        .select('SUM(order.total)', 'total')
-        .where('order.created_at >= :date', { date: currentMonth })
-        .getRawOne(),
-      this.orderRepository
-        .createQueryBuilder('order')
-        .select('SUM(order.total)', 'total')
-        .where('order.created_at >= :startDate AND order.created_at < :endDate', {
-          startDate: previousMonth,
-          endDate: currentMonth,
-        })
-        .getRawOne(),
+      this.prisma.order.aggregate({
+        _sum: {
+          totalAmount: true,
+        },
+        where: {
+          createdAt: {
+            gte: currentMonth,
+          },
+        },
+      }),
+      this.prisma.order.aggregate({
+        _sum: {
+          totalAmount: true,
+        },
+        where: {
+          createdAt: {
+            gte: previousMonth,
+            lt: currentMonth,
+          },
+        },
+      }),
     ]);
 
     return {
-      current: parseFloat(current?.total) || 0,
-      previous: parseFloat(previous?.total) || 0,
+      current: parseFloat(current._sum.totalAmount?.toString() || '0'),
+      previous: parseFloat(previous._sum.totalAmount?.toString() || '0'),
     };
   }
 
@@ -131,12 +158,15 @@ export class DashboardService {
     previousMonth.setMonth(previousMonth.getMonth() - 1);
 
     const [current, previous] = await Promise.all([
-      this.orderRepository.count({
-        where: { createdAt: MoreThanOrEqual(currentMonth) },
+      this.prisma.order.count({
+        where: { createdAt: { gte: currentMonth } },
       }),
-      this.orderRepository.count({
+      this.prisma.order.count({
         where: {
-          createdAt: Between(previousMonth, currentMonth),
+          createdAt: {
+            gte: previousMonth,
+            lt: currentMonth,
+          },
         },
       }),
     ]);
@@ -152,13 +182,16 @@ export class DashboardService {
     previousMonth.setMonth(previousMonth.getMonth() - 1);
 
     const [current, previous] = await Promise.all([
-      this.customerRepository.count({
-        where: { isActive: true, createdAt: MoreThanOrEqual(currentMonth) },
+      this.prisma.customer.count({
+        where: { isActive: true, createdAt: { gte: currentMonth } },
       }),
-      this.customerRepository.count({
+      this.prisma.customer.count({
         where: {
           isActive: true,
-          createdAt: Between(previousMonth, currentMonth),
+          createdAt: {
+            gte: previousMonth,
+            lt: currentMonth,
+          },
         },
       }),
     ]);
@@ -167,21 +200,18 @@ export class DashboardService {
   }
 
   private async getProductsInStock() {
-    return await this.stockRepository
-      .createQueryBuilder('stock')
-      .select('COUNT(*)', 'count')
-      .where('stock.quantity > 0')
-      .getRawOne()
-      .then(result => parseInt(result.count) || 0);
+    return await this.prisma.stock.count({
+      where: { quantity: { gt: 0 } },
+    });
   }
 
   private async getLowStockProducts() {
-    return await this.stockRepository
-      .createQueryBuilder('stock')
-      .select('COUNT(*)', 'count')
-      .where('stock.quantity <= stock.minQuantity')
-      .getRawOne()
-      .then(result => parseInt(result.count) || 0);
+    const result = await this.prisma.$queryRaw`
+      SELECT COUNT(*) as count 
+      FROM stocks 
+      WHERE quantity <= "min_quantity"
+    `;
+    return parseInt((result as any[])[0]?.count || '0');
   }
 
   private calculatePercentageChange(previous: number, current: number): number {

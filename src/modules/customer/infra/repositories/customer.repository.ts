@@ -5,7 +5,7 @@ import { ICustomerRepository } from '@modules/customer/presentation/interfaces/c
 
 @Injectable()
 export class CustomerRepository implements ICustomerRepository {
-  constructor(private readonly repository: Repository<Customer>) { }
+  constructor(private readonly repository: Repository<Customer>) {}
 
   async create(data: Partial<Customer>): Promise<Customer> {
     const customer = this.repository.create(data);
@@ -20,26 +20,32 @@ export class CustomerRepository implements ICustomerRepository {
     return await this.repository.findOne({ where: { email } });
   }
 
-  async findAll(filters?: { search?: string; isActive?: boolean }): Promise<Customer[]> {
+  async findAll(filters?: {
+    search?: string;
+    isActive?: boolean;
+  }): Promise<Customer[]> {
     const queryBuilder = this.repository.createQueryBuilder('customer');
 
     if (filters?.search) {
       queryBuilder.where(
         'customer.firstName ILIKE :search OR customer.lastName ILIKE :search OR customer.email ILIKE :search',
-        { search: `%${filters.search}%` }
+        { search: `%${filters.search}%` },
       );
     }
 
     if (filters?.isActive !== undefined) {
-      queryBuilder.andWhere('customer.isActive = :isActive', { isActive: filters.isActive });
+      queryBuilder.andWhere('customer.isActive = :isActive', {
+        isActive: filters.isActive,
+      });
     }
 
-    return await queryBuilder
-      .orderBy('customer.createdAt', 'DESC')
-      .getMany();
+    return await queryBuilder.orderBy('customer.createdAt', 'DESC').getMany();
   }
 
-  async update(criteria: Partial<Customer>, data: Partial<Customer>): Promise<void> {
+  async update(
+    criteria: Partial<Customer>,
+    data: Partial<Customer>,
+  ): Promise<void> {
     await this.repository.update(criteria, data);
   }
 

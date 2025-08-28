@@ -3,7 +3,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 
 // Controllers e Services HTTP
-import { AppController } from '@shared/presentation/http/controllers/app.controller';
+import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 // Módulos de domínio
@@ -38,7 +38,7 @@ import { PrismaModule } from '@modules/prisma';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h'
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
         },
       }),
       inject: [ConfigService],
@@ -56,4 +56,4 @@ import { PrismaModule } from '@modules/prisma';
   controllers: [AppController],
   providers: [AppService, JwtService, HashService],
 })
-export class AppModule { }
+export class AppModule {}

@@ -1,24 +1,27 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule, getRepositoryToken } from '@nestjs/typeorm';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { StockController } from '@modules/stock/presentation/http/controllers/stock.controller';
-import { Stock } from '@modules/stock/entities/stock.entity';
 import { StockService } from './application/services/stock.service';
-import { StockRepository } from './infra/repositories/stock.repository';
-import { STOCK_REPOSITORY } from './presentation/interfaces/stock.interface';
+import { PrismaModule } from '@modules/prisma';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Stock])
+    PrismaModule,
+    ConfigModule,
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
+        },
+      }),
+      inject: [ConfigService],
+    }),
   ],
   controllers: [StockController],
-  providers: [
-    StockService,
-    {
-      provide: STOCK_REPOSITORY,
-      useFactory: (stockRepository) => new StockRepository(stockRepository),
-      inject: [getRepositoryToken(Stock)],
-    },
-  ],
+  providers: [StockService],
   exports: [StockService],
 })
 export class StockModule { }

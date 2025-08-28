@@ -40,7 +40,10 @@ export class ProductRepository implements IProductRepository {
     });
   }
 
-  async update(criteria: Partial<Product>, data: Partial<Product>): Promise<void> {
+  async update(
+    criteria: Partial<Product>,
+    data: Partial<Product>,
+  ): Promise<void> {
     await this.repository.update(criteria, data);
   }
 

@@ -38,10 +38,13 @@ export interface IStockRepository extends IBaseRepository<Stock> {
   findByStore(storeId: string): Promise<Stock[]>;
   findByProduct(productId: string): Promise<Stock[]>;
   findByStatus(status: string): Promise<Stock[]>;
-  findByStoreAndProduct(storeId: string, productId: string): Promise<Stock | null>;
+  findByStoreAndProduct(
+    storeId: string,
+    productId: string,
+  ): Promise<Stock | null>;
   findLowStock(): Promise<Stock[]>;
   update(id: string, data: Partial<Stock>): Promise<Stock | null>;
   delete(id: string): Promise<void>;
 }
 
-export const STOCK_REPOSITORY = 'STOCK_REPOSITORY'; 
+export const STOCK_REPOSITORY = 'STOCK_REPOSITORY';

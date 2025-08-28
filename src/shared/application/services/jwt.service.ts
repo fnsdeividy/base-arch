@@ -34,9 +34,15 @@ export class JwtService {
 
   verifyAccessToken(token: string): JwtPayload | null {
     try {
-      return this.jwtService.verify(token, {
+      const payload = this.jwtService.verify(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
       }) as JwtPayload;
+
+      // Validar se o payload tem as propriedades necessárias
+      if (payload.userId && payload.email) {
+        return payload;
+      }
+      return null;
     } catch {
       return null;
     }
@@ -44,9 +50,15 @@ export class JwtService {
 
   verifyRefreshToken(token: string): JwtPayload | null {
     try {
-      return this.jwtService.verify(token, {
+      const payload = this.jwtService.verify(token, {
         secret: this.configService.get<string>('JWT_SECRET'),
       }) as JwtPayload;
+
+      // Validar se o payload tem as propriedades necessárias
+      if (payload.userId && payload.email) {
+        return payload;
+      }
+      return null;
     } catch {
       return null;
     }
