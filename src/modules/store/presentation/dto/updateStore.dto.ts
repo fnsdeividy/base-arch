@@ -15,6 +15,18 @@ export class UpdateStoreDto {
 
   @IsString()
   @IsOptional()
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  state?: string;
+
+  @IsString()
+  @IsOptional()
+  country?: string;
+
+  @IsString()
+  @IsOptional()
   phone?: string;
 
   @IsEmail()
@@ -24,4 +36,4 @@ export class UpdateStoreDto {
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
-}
+} 

@@ -1,7 +1,8 @@
-import { IsString, IsOptional, IsEmail, IsBoolean } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
 
 export class CreateStoreDto {
   @IsString()
+  @IsNotEmpty()
   name: string;
 
   @IsString()
@@ -9,7 +10,20 @@ export class CreateStoreDto {
   description?: string;
 
   @IsString()
-  address: string;
+  @IsOptional()
+  address?: string;
+
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  state?: string;
+
+  @IsString()
+  @IsOptional()
+  country?: string;
 
   @IsString()
   @IsOptional()
@@ -18,8 +32,4 @@ export class CreateStoreDto {
   @IsEmail()
   @IsOptional()
   email?: string;
-
-  @IsBoolean()
-  @IsOptional()
-  isActive?: boolean;
-}
+} 

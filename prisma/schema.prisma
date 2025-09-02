@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -14,32 +11,224 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid()) @map("id")
-  email         String   @unique @db.VarChar(255)
-  password      String   @db.VarChar(255)
-  firstName     String   @map("first_name") @db.VarChar(100)
-  lastName      String   @map("last_name") @db.VarChar(100)
-  phone         String?  @db.VarChar(20)
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  firstName     String   @map("first_name")
+  lastName      String   @map("last_name")
+  phone         String?
   isActive      Boolean  @default(true) @map("is_active")
   emailVerified Boolean  @default(false) @map("email_verified")
-  createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   // Relations
-  userRoles UserRole[]
-  sessions  Session[]
-  auditLogs AuditLog[]
+  userRoles    UserRole[]
+  sessions     Session[]
+  auditLogs    AuditLog[]
+  transactions Transaction[]
 
   @@map("users")
 }
 
+model Store {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  address     String?
+  city        String?
+  state       String?
+  country     String?
+  phone       String?
+  email       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  products     Product[]
+  stock        Stock[]
+  orders       Order[]
+  transactions Transaction[]
+
+  @@map("stores")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  sku         String?  @unique
+  barcode     String?  @unique
+  price       Decimal  @db.Decimal(10, 2)
+  costPrice   Decimal? @db.Decimal(10, 2)
+  category    String?
+  brand       String?
+  weight      Decimal? @db.Decimal(8, 3)
+  dimensions  String?
+  isActive    Boolean  @default(true)
+  storeId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  stock      Stock[]
+  orderItems OrderItem[]
+
+  @@map("products")
+}
+
+model Stock {
+  id          String   @id @default(uuid())
+  productId   String
+  storeId     String
+  quantity    Int
+  minQuantity Int      @default(0)
+  maxQuantity Int?
+  location    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product      Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  store        Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  transactions StockTransaction[]
+
+  @@unique([productId, storeId])
+  @@map("stock")
+}
+
+model StockTransaction {
+  id          String   @id @default(uuid())
+  stockId     String
+  type        String // in, out, adjustment
+  quantity    Int
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@map("stock_transactions")
+}
+
+model Customer {
+  id        String   @id @default(uuid())
+  name      String
+  email     String?  @unique
+  phone     String?
+  address   String?
+  city      String?
+  state     String?
+  country   String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  orders   Order[]
+  invoices Invoice[]
+
+  @@map("customers")
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  orderNumber   String   @unique
+  customerId    String
+  customerName  String
+  storeId       String
+  status        String   @default("pending")
+  totalAmount   Decimal  @db.Decimal(10, 2)
+  discount      Decimal? @db.Decimal(10, 2)
+  taxAmount     Decimal? @db.Decimal(10, 2)
+  paymentMethod String   @default("cash")
+  notes         String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Relations
+  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  invoices   Invoice[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  productId   String
+  productName String
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  discount    Decimal? @db.Decimal(5, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model Invoice {
+  id            String    @id @default(uuid())
+  invoiceNumber String    @unique
+  series        String?
+  orderId       String?
+  customerId    String
+  customerName  String
+  status        String    @default("draft")
+  issueDate     DateTime  @default(now())
+  dueDate       DateTime?
+  totalAmount   Decimal   @db.Decimal(10, 2)
+  taxAmount     Decimal?  @db.Decimal(10, 2)
+  notes         String?
+  storeId       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  order    Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  type        String // income, expense, transfer
+  category    String
+  description String
+  amount      Decimal  @db.Decimal(10, 2)
+  date        DateTime
+  reference   String?
+  storeId     String?
+  userId      String
+  attachments String[]
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  store Store? @relation(fields: [storeId], references: [id])
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
 model Role {
-  id          String   @id @default(uuid()) @map("id")
-  name        String   @unique @db.VarChar(100)
-  description String?  @db.Text
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
   isSystem    Boolean  @default(false) @map("is_system")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
   userRoles       UserRole[]
@@ -49,13 +238,13 @@ model Role {
 }
 
 model Permission {
-  id          String   @id @default(uuid()) @map("id")
-  name        String   @unique @db.VarChar(100)
-  description String?  @db.Text
-  resource    String   @db.VarChar(100)
-  action      String   @db.VarChar(50)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  resource    String
+  action      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
   rolePermissions RolePermission[]
@@ -66,7 +255,7 @@ model Permission {
 model UserRole {
   userId    String   @map("user_id")
   roleId    String   @map("role_id")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdAt DateTime @default(now()) @map("created_at")
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -79,7 +268,7 @@ model UserRole {
 model RolePermission {
   roleId       String   @map("role_id")
   permissionId String   @map("permission_id")
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  createdAt    DateTime @default(now()) @map("created_at")
 
   // Relations
   role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
@@ -90,13 +279,13 @@ model RolePermission {
 }
 
 model Session {
-  id               String   @id @default(uuid()) @map("id")
+  id               String   @id @default(uuid())
   userId           String   @map("user_id")
-  refreshTokenHash String   @map("refresh_token_hash") @db.VarChar(255)
-  expiresAt        DateTime @map("expires_at") @db.Timestamptz(6)
-  ipAddress        String?  @map("ip_address") @db.Inet
-  userAgent        String?  @map("user_agent") @db.Text
-  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  refreshTokenHash String   @map("refresh_token_hash")
+  expiresAt        DateTime @map("expires_at")
+  ipAddress        String?  @map("ip_address")
+  userAgent        String?  @map("user_agent")
+  createdAt        DateTime @default(now()) @map("created_at")
 
   // Relations
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -105,162 +294,18 @@ model Session {
 }
 
 model AuditLog {
-  id           String   @id @default(uuid()) @map("id")
+  id           String   @id @default(uuid())
   userId       String?  @map("user_id")
-  action       String   @db.VarChar(100)
-  resourceType String   @map("resource_type") @db.VarChar(100)
-  resourceId   String?  @map("resource_id") @db.VarChar(100)
-  details      Json?    @db.JsonB
-  ipAddress    String?  @map("ip_address") @db.Inet
-  userAgent    String?  @map("user_agent") @db.Text
-  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  details      Json?
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   // Relations
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
-}
-
-model Store {
-  id          String   @id @default(uuid()) @map("id")
-  name        String   @db.VarChar(255)
-  description String?  @db.Text
-  address     String   @db.Text
-  phone       String?  @db.VarChar(20)
-  email       String?  @db.VarChar(255)
-  isActive    Boolean  @default(true) @map("is_active")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // Relations
-  products Product[]
-  stocks   Stock[]
-  orders   Order[]
-
-  @@map("stores")
-}
-
-model Product {
-  id          String   @id @default(uuid()) @map("id")
-  name        String   @db.VarChar(255)
-  description String?  @db.Text
-  sku         String   @unique @db.VarChar(100)
-  price       Decimal  @db.Decimal(10, 2)
-  cost        Decimal? @db.Decimal(10, 2)
-  category    String   @db.VarChar(100)
-  brand       String?  @db.VarChar(100)
-  weight      Decimal? @db.Decimal(8, 3)
-  dimensions  String?  @db.VarChar(100)
-  isActive    Boolean  @default(true) @map("is_active")
-  storeId     String   @map("store_id")
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // Relations
-  store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  stocks     Stock[]
-  orderItems OrderItem[]
-
-  @@map("products")
-}
-
-model Stock {
-  id          String   @id @default(uuid()) @map("id")
-  productId   String   @map("product_id")
-  storeId     String   @map("store_id")
-  quantity    Int      @default(0)
-  minQuantity Int      @default(0) @map("min_quantity")
-  maxQuantity Int?     @map("max_quantity")
-  location    String?  @db.VarChar(100)
-  status      String   @default("active") @db.VarChar(50)
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // Relations
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-  store   Store   @relation(fields: [storeId], references: [id], onDelete: Cascade)
-
-  @@unique([productId, storeId])
-  @@map("stocks")
-}
-
-model Customer {
-  id        String   @id @default(uuid()) @map("id")
-  firstName String   @map("first_name") @db.VarChar(100)
-  lastName  String   @map("last_name") @db.VarChar(100)
-  email     String   @unique @db.VarChar(255)
-  phone     String?  @db.VarChar(20)
-  address   String?  @db.Text
-  city      String?  @db.VarChar(100)
-  state     String?  @db.VarChar(100)
-  zipCode   String?  @map("zip_code") @db.VarChar(20)
-  country   String?  @db.VarChar(100)
-  isActive  Boolean  @default(true) @map("is_active")
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // Relations
-  orders   Order[]
-  invoices Invoice[]
-
-  @@map("customers")
-}
-
-model Order {
-  id          String   @id @default(uuid()) @map("id")
-  orderNumber String   @unique @map("order_number") @db.VarChar(100)
-  customerId  String   @map("customer_id")
-  storeId     String   @map("store_id")
-  status      String   @default("pending") @db.VarChar(50)
-  totalAmount Decimal  @map("total_amount") @db.Decimal(10, 2)
-  discount    Decimal? @db.Decimal(10, 2)
-  taxAmount   Decimal? @map("tax_amount") @db.Decimal(10, 2)
-  notes       String?  @db.Text
-  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt   DateTime @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // Relations
-  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
-  orderItems OrderItem[]
-  invoices   Invoice[]
-
-  @@map("orders")
-}
-
-model OrderItem {
-  id        String   @id @default(uuid()) @map("id")
-  orderId   String   @map("order_id")
-  productId String   @map("product_id")
-  quantity  Int
-  unitPrice Decimal  @map("unit_price") @db.Decimal(10, 2)
-  discount  Decimal? @db.Decimal(5, 2)
-  total     Decimal  @db.Decimal(10, 2)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-
-  // Relations
-  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@map("order_items")
-}
-
-model Invoice {
-  id            String    @id @default(uuid()) @map("id")
-  invoiceNumber String    @unique @map("invoice_number") @db.VarChar(100)
-  orderId       String?   @map("order_id")
-  customerId    String    @map("customer_id")
-  status        String    @default("pending") @db.VarChar(50)
-  dueDate       DateTime? @map("due_date") @db.Timestamptz(6)
-  totalAmount   Decimal   @map("total_amount") @db.Decimal(10, 2)
-  taxAmount     Decimal?  @map("tax_amount") @db.Decimal(10, 2)
-  notes         String?   @db.Text
-  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz(6)
-
-  // Relations
-  order    Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
-
-  @@map("invoices")
 }

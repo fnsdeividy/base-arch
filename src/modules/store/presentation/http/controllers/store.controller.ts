@@ -1,49 +1,54 @@
 import {
   Controller,
-  Get,
   Post,
   Body,
-  Patch,
+  HttpCode,
+  HttpStatus,
+  Put,
+  Get,
   Param,
   Delete,
-  UseGuards,
-  Query,
+  UseGuards
 } from '@nestjs/common';
+import {
+  CreateStoreDto,
+  UpdateStoreDto
+} from '@modules/store/presentation/interfaces/store.interface';
 import { StoreService } from '@modules/store/application/services/store.service';
-import { CreateStoreDto } from '@modules/store/presentation/dto/createStore.dto';
-import { UpdateStoreDto } from '@modules/store/presentation/dto/updateStore.dto';
-import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
+// import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
 
-@Controller('api/v1/stores')
-@UseGuards(JwtAuthGuard)
+@Controller('stores')
+// @UseGuards(JwtAuthGuard)
 export class StoreController {
-  constructor(private readonly storeService: StoreService) {}
+  constructor(private readonly storeService: StoreService) { }
 
-  @Post()
-  create(@Body() createStoreDto: CreateStoreDto) {
-    return this.storeService.createStore(createStoreDto);
+  @Post('create')
+  @HttpCode(HttpStatus.CREATED)
+  create(@Body() payload: CreateStoreDto) {
+    return this.storeService.createStore(payload);
   }
 
   @Get()
-  findAll(
-    @Query('search') search?: string,
-    @Query('isActive') isActive?: boolean,
-  ) {
+  @HttpCode(HttpStatus.OK)
+  findAll() {
     return this.storeService.findAll();
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  @HttpCode(HttpStatus.OK)
+  findById(@Param('id') id: string) {
     return this.storeService.findById(id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateStoreDto: UpdateStoreDto) {
-    return this.storeService.updateStore(id, updateStoreDto);
+  @Put(':id')
+  @HttpCode(HttpStatus.OK)
+  update(@Param('id') id: string, @Body() payload: UpdateStoreDto) {
+    return this.storeService.updateStore(id, payload);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
+  @HttpCode(HttpStatus.NO_CONTENT)
+  delete(@Param('id') id: string) {
     return this.storeService.deleteStore(id);
   }
-}
+} 

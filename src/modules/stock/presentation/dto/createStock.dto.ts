@@ -1,45 +1,52 @@
-import {
-  IsString,
-  IsNumber,
-  IsOptional,
-  IsUUID,
-  IsEnum,
-  Min,
-  Max,
-} from 'class-validator';
-
-export enum StockStatus {
-  ACTIVE = 'active',
-  INACTIVE = 'inactive',
-  DISCONTINUED = 'discontinued',
-}
+import { IsString, IsNumber, IsOptional, IsUUID, IsBoolean, IsDateString } from 'class-validator';
 
 export class CreateStockDto {
-  @IsUUID()
-  productId: string;
+  @IsNumber()
+  quantity: number;
+
+  @IsNumber()
+  @IsOptional()
+  minStockLevel?: number;
+
+  @IsNumber()
+  @IsOptional()
+  maxStockLevel?: number;
+
+  @IsString()
+  @IsOptional()
+  status?: string;
+
+  @IsString()
+  @IsOptional()
+  location?: string;
+
+  @IsString()
+  @IsOptional()
+  notes?: string;
+
+  @IsDateString()
+  @IsOptional()
+  lastRestockedDate?: Date;
+
+  @IsString()
+  @IsOptional()
+  expiryDate?: string;
+
+  @IsNumber()
+  @IsOptional()
+  unitCost?: number;
+
+  @IsString()
+  @IsOptional()
+  supplier?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
 
   @IsUUID()
   storeId: string;
 
-  @IsNumber()
-  @Min(0)
-  quantity: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  minQuantity?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  maxQuantity?: number;
-
-  @IsOptional()
-  @IsString()
-  location?: string;
-
-  @IsOptional()
-  @IsEnum(StockStatus)
-  status?: StockStatus;
-}
+  @IsUUID()
+  productId: string;
+} 

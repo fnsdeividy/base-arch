@@ -4,13 +4,7 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "paths": {
-      "@modules/*": ["modules/*"],
-      "@config/*": ["config/*"],
-      "@shared/*": ["shared/*"],
-
-      "@/*": ["*"]
-    }
-
+    "webpack": true,
+    "webpackConfigPath": "webpack.config.js"
   }
 }

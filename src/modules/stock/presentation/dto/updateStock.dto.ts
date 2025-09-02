@@ -1,27 +1,55 @@
-import { IsOptional, IsNumber, IsString, IsEnum, Min } from 'class-validator';
-import { StockStatus } from './createStock.dto';
+import { IsString, IsNumber, IsOptional, IsUUID, IsBoolean, IsDateString } from 'class-validator';
 
 export class UpdateStockDto {
-  @IsOptional()
   @IsNumber()
-  @Min(0)
+  @IsOptional()
   quantity?: number;
 
-  @IsOptional()
   @IsNumber()
-  @Min(0)
-  minQuantity?: number;
-
   @IsOptional()
+  minStockLevel?: number;
+
   @IsNumber()
-  @Min(0)
-  maxQuantity?: number;
-
   @IsOptional()
+  maxStockLevel?: number;
+
   @IsString()
+  @IsOptional()
+  status?: string;
+
+  @IsString()
+  @IsOptional()
   location?: string;
 
+  @IsString()
   @IsOptional()
-  @IsEnum(StockStatus)
-  status?: StockStatus;
-}
+  notes?: string;
+
+  @IsDateString()
+  @IsOptional()
+  lastRestockedDate?: Date;
+
+  @IsString()
+  @IsOptional()
+  expiryDate?: string;
+
+  @IsNumber()
+  @IsOptional()
+  unitCost?: number;
+
+  @IsString()
+  @IsOptional()
+  supplier?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  isActive?: boolean;
+
+  @IsUUID()
+  @IsOptional()
+  storeId?: string;
+
+  @IsUUID()
+  @IsOptional()
+  productId?: string;
+} 

@@ -1,95 +1,66 @@
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
-import { CreateStoreDto } from '@modules/store/presentation/interfaces/store.interface';
-import { UpdateStoreDto } from '@modules/store/presentation/dto/updateStore.dto';
-import { PrismaService } from '@modules/prisma/prisma.service';
+import { Injectable, NotFoundException, ConflictException, Inject } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { Store } from '@modules/store/entities/store.entity';
+import { CreateStoreDto } from '@modules/store/presentation/dto/createStore.dto';
+import { UpdateStoreDto } from '@modules/store/presentation/dto/updateStore.dto';
+import { IStoreService, IStoreRepository, STORE_REPOSITORY } from '@modules/store/presentation/interfaces/store.interface';
 
 @Injectable()
-export class StoreService {
+export class StoreService implements IStoreService {
   constructor(
-    private readonly prisma: PrismaService,
+    @Inject(STORE_REPOSITORY)
+    private readonly storeRepository: IStoreRepository
   ) { }
 
-  async createStore(createStoreDto: CreateStoreDto) {
-    const existingStore = await this.prisma.store.findFirst({
-      where: { name: createStoreDto.name },
-    });
+  async createStore(createStoreDto: CreateStoreDto): Promise<Store> {
+    const existingStore = await this.storeRepository.findByName(createStoreDto.name);
     if (existingStore) {
       throw new ConflictException('Store name already exists');
     }
 
-    const store = await this.prisma.store.create({
-      data: {
-        id: randomUUID(),
-        name: createStoreDto.name,
-        description: createStoreDto.description,
-        address: createStoreDto.address,
-        phone: createStoreDto.phone,
-        email: createStoreDto.email,
-        isActive: createStoreDto.isActive ?? true,
-      },
+    const store = await this.storeRepository.create({
+      id: randomUUID(),
+      ...createStoreDto,
     });
 
     return store;
   }
 
-  async updateStore(
-    id: string,
-    updateStoreDto: UpdateStoreDto,
-  ) {
-    const existingStore = await this.prisma.store.findUnique({
-      where: { id },
-    });
+  async updateStore(id: string, payload: UpdateStoreDto): Promise<Store | null> {
+    const existingStore = await this.storeRepository.findById(id);
     if (!existingStore) {
       throw new NotFoundException('Store not found');
     }
 
-    if (updateStoreDto.name && updateStoreDto.name !== existingStore.name) {
-      const storeWithName = await this.prisma.store.findFirst({
-        where: { name: updateStoreDto.name },
-      });
+    if (payload.name && payload.name !== existingStore.name) {
+      const storeWithName = await this.storeRepository.findByName(payload.name);
       if (storeWithName) {
         throw new ConflictException('Store name already exists');
       }
     }
 
-    const updatedStore = await this.prisma.store.update({
-      where: { id },
-      data: updateStoreDto,
-    });
+    await this.storeRepository.update({ id }, payload);
+    const updatedStore = await this.storeRepository.findById(id);
 
     return updatedStore;
   }
 
-  async findById(id: string) {
-    const store = await this.prisma.store.findUnique({
-      where: { id },
-    });
+  async findById(id: string): Promise<Store | null> {
+    const store = await this.storeRepository.findById(id);
     return store;
   }
 
-  async findAll() {
-    const stores = await this.prisma.store.findMany({
-      where: { isActive: true },
-      orderBy: { createdAt: 'desc' },
-    });
+  async findAll(): Promise<Store[]> {
+    const stores = await this.storeRepository.list();
     return stores;
   }
 
   async deleteStore(id: string): Promise<void> {
-    const existingStore = await this.prisma.store.findUnique({
-      where: { id },
-    });
+    const existingStore = await this.storeRepository.findById(id);
     if (!existingStore) {
       throw new NotFoundException('Store not found');
     }
 
-    await this.prisma.store.delete({
-      where: { id },
-    });
+    await this.storeRepository.delete({ id });
   }
-}
+} 

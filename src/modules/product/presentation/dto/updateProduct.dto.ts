@@ -1,10 +1,4 @@
-import {
-  IsString,
-  IsNumber,
-  IsOptional,
-  IsUUID,
-  IsBoolean,
-} from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsUrl, IsBoolean, Min, IsPositive } from 'class-validator';
 
 export class UpdateProductDto {
   @IsString()
@@ -16,8 +10,24 @@ export class UpdateProductDto {
   description?: string;
 
   @IsNumber()
+  @IsPositive()
   @IsOptional()
   price?: number;
+
+  @IsNumber()
+  @IsPositive()
+  @IsOptional()
+  costPrice?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  stockQuantity?: number;
+
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  minStockLevel?: number;
 
   @IsString()
   @IsOptional()
@@ -25,17 +35,34 @@ export class UpdateProductDto {
 
   @IsString()
   @IsOptional()
+  barcode?: string;
+
+  @IsString()
+  @IsOptional()
   category?: string;
 
   @IsString()
   @IsOptional()
-  imageUrl?: string;
+  brand?: string;
 
-  @IsUUID()
+  @IsString()
   @IsOptional()
-  storeId?: string;
+  unit?: string;
+
+  @IsNumber()
+  @IsPositive()
+  @IsOptional()
+  weight?: number;
+
+  @IsString()
+  @IsOptional()
+  weightUnit?: string;
+
+  @IsUrl()
+  @IsOptional()
+  imageUrl?: string;
 
   @IsBoolean()
   @IsOptional()
   isActive?: boolean;
-}
+} 

@@ -1,25 +1,12 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { ProductController } from '@modules/product/presentation/http/controllers/product.controller';
-import { ProductService } from './application/services/product.service';
+import { ProductsController } from './presentation/products.controller';
+import { ProductsService } from './application/products.service';
+import { PrismaModule } from '../prisma/prisma.module';
 
 @Module({
-  imports: [
-    ConfigModule,
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: {
-          expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
-        },
-      }),
-      inject: [ConfigService],
-    }),
-  ],
-  controllers: [ProductController],
-  providers: [ProductService],
-  exports: [ProductService],
+  imports: [PrismaModule],
+  controllers: [ProductsController],
+  providers: [ProductsService],
+  exports: [ProductsService]
 })
 export class ProductsModule { }

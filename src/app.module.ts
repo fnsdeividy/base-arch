@@ -6,25 +6,20 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
-// Módulos de domínio
-import { AuthModule } from '@modules/auth/auth.module';
-
-// Serviços compartilhados
-import { JwtService } from '@shared/application/services/jwt.service';
-import { HashService } from '@shared/application/services/hash.service';
-
-// Modules
-import { UserModule } from '@modules/user/user.module';
-import { StoresModule } from '@modules/store/stores.module';
-import { ProductsModule } from '@modules/product/products.module';
-import { CustomersModule } from '@modules/customer/customers.module';
-import { InvoicesModule } from '@modules/invoice/invoices.module';
-import { OrdersModule } from '@modules/order/orders.module';
-import { StockModule } from '@modules/stock/stock.module';
-import { DashboardModule } from '@modules/dashboard/dashboard.module';
-
 // Prisma Module
-import { PrismaModule } from '@modules/prisma';
+import { PrismaModule } from './modules/prisma/prisma.module';
+
+// Shared Module
+import { SharedModule } from './shared/shared.module';
+
+// Módulos de domínio
+import { CashflowModule } from './modules/cashflow/cashflow.module';
+import { StoresModule } from './modules/store/stores.module';
+import { SalesModule } from './modules/sales/sales.module';
+import { StockModule } from './modules/stock/stock.module';
+import { ProductsModule } from './modules/product/products.module';
+import { UserModule } from './modules/user/user.module';
+import { AuthModule } from './modules/auth/auth.module';
 
 @Module({
   imports: [
@@ -36,24 +31,23 @@ import { PrismaModule } from '@modules/prisma';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
+        secret: configService.get<string>('JWT_SECRET') || 'your-secret-key',
         signOptions: {
           expiresIn: configService.get<string>('JWT_EXPIRES_IN') || '24h',
         },
       }),
       inject: [ConfigService],
     }),
-    AuthModule,
-    UserModule,
+    SharedModule,
+    CashflowModule,
     StoresModule,
-    ProductsModule,
+    SalesModule,
     StockModule,
-    CustomersModule,
-    OrdersModule,
-    InvoicesModule,
-    DashboardModule,
+    ProductsModule,
+    UserModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, JwtService, HashService],
+  providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

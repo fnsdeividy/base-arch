@@ -19,9 +19,7 @@
     "noFallthroughCasesInSwitch": false,
     "paths": {
       "@modules/*": ["modules/*"],
-      "@config/*": ["config/*"],
-      "@shared/*": ["shared/*"],
-      "@/*": ["*"]
+      "@shared/*": ["shared/*"]
     }
   },
   "include": [
@@ -29,7 +27,6 @@
   ],
   "exclude": [
     "node_modules",
-    "dist",
-    "src/modules/**"
+    "dist"
   ]
 }
