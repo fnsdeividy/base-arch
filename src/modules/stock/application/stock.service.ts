@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { Stock } from '../entities/stock.entity';
-import { CreateStockDto, UpdateStockDto } from '../presentation/interfaces/stock.interface';
+import { CreateStockDto } from '../presentation/dto/createStock.dto';
+import { UpdateStockDto } from '../presentation/interfaces/stock.interface';
 
 @Injectable()
 export class StockService {
@@ -99,8 +100,27 @@ export class StockService {
   }
 
   async create(data: CreateStockDto): Promise<Stock> {
+    // Mapear os campos do DTO para o schema do Prisma
+    const stockData: any = {
+      productId: data.productId,
+      storeId: data.storeId,
+      quantity: data.quantity,
+    };
+
+    if (data.minStockLevel !== undefined) {
+      stockData.minQuantity = data.minStockLevel;
+    }
+
+    if (data.maxStockLevel !== undefined) {
+      stockData.maxQuantity = data.maxStockLevel;
+    }
+
+    if (data.location !== undefined) {
+      stockData.location = data.location;
+    }
+
     const stock = await this.prisma.stock.create({
-      data,
+      data: stockData,
       include: {
         product: true
       }
@@ -116,9 +136,16 @@ export class StockService {
   async update(id: string, data: UpdateStockDto): Promise<Stock> {
     const stock = await this.findOne(id);
 
+    // Mapear os campos do DTO para o schema do Prisma
+    const updateData: any = {};
+    if (data.quantity !== undefined) updateData.quantity = data.quantity;
+    if (data.minStockLevel !== undefined) updateData.minQuantity = data.minStockLevel;
+    if (data.maxStockLevel !== undefined) updateData.maxQuantity = data.maxStockLevel;
+    if (data.location !== undefined) updateData.location = data.location;
+
     const updatedStock = await this.prisma.stock.update({
       where: { id },
-      data,
+      data: updateData,
       include: {
         product: true
       }

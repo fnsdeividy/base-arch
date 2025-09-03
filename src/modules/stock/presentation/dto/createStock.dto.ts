@@ -5,16 +5,11 @@ export class CreateStockDto {
   quantity: number;
 
   @IsNumber()
-  @IsOptional()
-  minStockLevel?: number;
+  minStockLevel: number;
 
   @IsNumber()
   @IsOptional()
   maxStockLevel?: number;
-
-  @IsString()
-  @IsOptional()
-  status?: string;
 
   @IsString()
   @IsOptional()

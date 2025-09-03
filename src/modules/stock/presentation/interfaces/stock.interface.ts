@@ -15,14 +15,14 @@ export interface CreateStockDto {
   productId: string;
   storeId: string;
   quantity: number;
-  minQuantity: number;
-  maxQuantity?: number;
+  minStockLevel: number;
+  maxStockLevel?: number;
   location?: string;
 }
 
 export interface UpdateStockDto {
   quantity?: number;
-  minQuantity?: number;
-  maxQuantity?: number;
+  minStockLevel?: number;
+  maxStockLevel?: number;
   location?: string;
 }
