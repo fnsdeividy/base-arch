@@ -181,6 +181,7 @@ export class SalesRepository implements ISalesRepository {
         total: totalAmount,
         discount: data.discount || 0,
         tax: data.taxAmount || 0,
+        paymentMethod: data.paymentMethod || 'cash',
         notes: data.notes || '',
         orderItems: {
           create: data.items?.map(item => {
@@ -217,6 +218,7 @@ export class SalesRepository implements ISalesRepository {
         total: data.totalAmount,
         discount: data.discount,
         tax: data.taxAmount,
+        paymentMethod: data.paymentMethod,
         notes: data.notes,
       },
     });
@@ -294,7 +296,7 @@ export class SalesRepository implements ISalesRepository {
       total: Number(order.total), // Para compatibilidade com frontend
       discount: order.discount ? Number(order.discount) : null,
       taxAmount: order.tax ? Number(order.tax) : null,
-      paymentMethod: 'cash', // Fallback para compatibilidade
+      paymentMethod: order.paymentMethod || 'cash',
       notes: order.notes,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,

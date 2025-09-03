@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsEmail, IsOptional } from 'class-validator';
+import { IsString, IsNotEmpty, IsEmail, IsOptional, IsIn } from 'class-validator';
 
 export class CreateStoreDto {
   @IsString()
@@ -10,26 +10,31 @@ export class CreateStoreDto {
   description?: string;
 
   @IsString()
-  @IsOptional()
-  address?: string;
+  @IsNotEmpty()
+  address: string;
+
+  @IsString()
+  @IsNotEmpty()
+  city: string;
+
+  @IsString()
+  @IsNotEmpty()
+  state: string;
 
   @IsString()
   @IsOptional()
-  city?: string;
+  zipCode?: string;
 
   @IsString()
-  @IsOptional()
-  state?: string;
-
-  @IsString()
-  @IsOptional()
-  country?: string;
-
-  @IsString()
-  @IsOptional()
-  phone?: string;
+  @IsNotEmpty()
+  phone: string;
 
   @IsEmail()
   @IsOptional()
   email?: string;
+
+  @IsString()
+  @IsIn(['main', 'branch', 'kiosk'])
+  @IsOptional()
+  type?: 'main' | 'branch' | 'kiosk';
 } 

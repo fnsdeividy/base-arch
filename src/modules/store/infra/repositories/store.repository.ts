@@ -27,7 +27,6 @@ export class StoreRepository implements IStoreRepository {
 
   async list(): Promise<Store[]> {
     return await this.prisma.store.findMany({
-      where: { isActive: true },
       orderBy: { createdAt: 'desc' },
     });
   }

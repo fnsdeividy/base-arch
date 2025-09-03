@@ -8,6 +8,7 @@ import {
   Get,
   Param,
   Delete,
+  Patch,
   UseGuards
 } from '@nestjs/common';
 import {
@@ -22,7 +23,7 @@ import { StoreService } from '@modules/store/application/services/store.service'
 export class StoreController {
   constructor(private readonly storeService: StoreService) { }
 
-  @Post('create')
+  @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() payload: CreateStoreDto) {
     return this.storeService.createStore(payload);
@@ -30,8 +31,15 @@ export class StoreController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  findAll() {
-    return this.storeService.findAll();
+  async findAll() {
+    const stores = await this.storeService.findAll();
+    return {
+      stores,
+      total: stores.length,
+      page: 1,
+      limit: stores.length,
+      totalPages: 1
+    };
   }
 
   @Get(':id')
@@ -50,5 +58,17 @@ export class StoreController {
   @HttpCode(HttpStatus.NO_CONTENT)
   delete(@Param('id') id: string) {
     return this.storeService.deleteStore(id);
+  }
+
+  @Patch(':id/activate')
+  @HttpCode(HttpStatus.OK)
+  activate(@Param('id') id: string) {
+    return this.storeService.updateStore(id, { isActive: true });
+  }
+
+  @Patch(':id/deactivate')
+  @HttpCode(HttpStatus.OK)
+  deactivate(@Param('id') id: string) {
+    return this.storeService.updateStore(id, { isActive: false });
   }
 } 

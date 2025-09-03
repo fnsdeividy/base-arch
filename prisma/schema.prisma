@@ -38,9 +38,11 @@ model Store {
   address     String?
   city        String?
   state       String?
+  zipCode     String?
   country     String?
   phone       String?
   email       String?
+  type        String?  @default("branch")
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -137,17 +139,18 @@ model Customer {
 }
 
 model Order {
-  id          String   @id @default(uuid())
-  orderNumber String   @unique @map("order_number")
-  customerId  String   @map("customer_id")
-  storeId     String   @map("store_id")
-  total       Decimal  @db.Decimal(10, 2)
-  discount    Decimal? @db.Decimal(10, 2)
-  tax         Decimal? @map("tax") @db.Decimal(10, 2)
-  status      String   @default("pending")
-  notes       String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  orderNumber   String   @unique @map("order_number")
+  customerId    String   @map("customer_id")
+  storeId       String   @map("store_id")
+  total         Decimal  @db.Decimal(10, 2)
+  discount      Decimal? @db.Decimal(10, 2)
+  tax           Decimal? @map("tax") @db.Decimal(10, 2)
+  status        String   @default("pending")
+  paymentMethod String   @default("cash") @map("payment_method")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   // Relations
   customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
