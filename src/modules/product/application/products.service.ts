@@ -8,11 +8,15 @@ export class ProductsService {
   constructor(private prisma: PrismaService) { }
 
   async findAll(): Promise<Product[]> {
+    console.log('🔍 Buscando produtos no banco de dados...');
+
     const products = await this.prisma.product.findMany({
       include: {
         stock: true
       }
     });
+
+    console.log(`📦 Encontrados ${products.length} produtos:`, products);
 
     return products.map(product => ({
       ...product,

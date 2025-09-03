@@ -11,6 +11,13 @@ export interface ISalesRepository {
   create(data: Partial<Sale>): Promise<Sale>;
   update(id: string, data: Partial<Sale>): Promise<void>;
   delete(id: string): Promise<void>;
+  getStatistics(filters: any): Promise<{
+    totalSales: number;
+    totalRevenue: number;
+    averageTicket: number;
+    salesByStatus: Record<string, number>;
+    salesByPaymentMethod: Record<string, number>;
+  }>;
 }
 
 export interface ISalesService {
@@ -22,4 +29,13 @@ export interface ISalesService {
   create(data: Partial<Sale>): Promise<Sale>;
   update(id: string, data: Partial<Sale>): Promise<void>;
   delete(id: string): Promise<void>;
+  cancel(id: string, reason?: string): Promise<Sale>;
+  refund(id: string, amount: number, reason?: string): Promise<Sale>;
+  getStatistics(filters: any): Promise<{
+    totalSales: number;
+    totalRevenue: number;
+    averageTicket: number;
+    salesByStatus: Record<string, number>;
+    salesByPaymentMethod: Record<string, number>;
+  }>;
 }

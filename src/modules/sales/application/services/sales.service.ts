@@ -52,4 +52,42 @@ export class SalesService implements ISalesService {
     }
     await this.salesRepository.delete(id);
   }
+
+  async cancel(id: string, reason?: string): Promise<Sale> {
+    const existingSale = await this.salesRepository.findById(id);
+    if (!existingSale) {
+      throw new NotFoundException('Sale not found');
+    }
+    
+    await this.salesRepository.update(id, { 
+      status: 'cancelled',
+      notes: reason ? `Cancelado: ${reason}` : 'Cancelado'
+    });
+    
+    return await this.salesRepository.findById(id) as Sale;
+  }
+
+  async refund(id: string, amount: number, reason?: string): Promise<Sale> {
+    const existingSale = await this.salesRepository.findById(id);
+    if (!existingSale) {
+      throw new NotFoundException('Sale not found');
+    }
+    
+    await this.salesRepository.update(id, { 
+      status: 'refunded',
+      notes: reason ? `Reembolsado: ${reason} - Valor: R$ ${amount}` : `Reembolsado - Valor: R$ ${amount}`
+    });
+    
+    return await this.salesRepository.findById(id) as Sale;
+  }
+
+  async getStatistics(filters: any): Promise<{
+    totalSales: number;
+    totalRevenue: number;
+    averageTicket: number;
+    salesByStatus: Record<string, number>;
+    salesByPaymentMethod: Record<string, number>;
+  }> {
+    return await this.salesRepository.getStatistics(filters);
+  }
 }

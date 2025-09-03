@@ -4,6 +4,7 @@ import {
   Post,
   Put,
   Delete,
+  Patch,
   Body,
   Param,
   Query,
@@ -69,6 +70,21 @@ export class SalesController {
     return await this.salesService.create(data);
   }
 
+  @Post('simple')
+  @HttpCode(HttpStatus.CREATED)
+  async createSimple(@Body() data: any) {
+    // Endpoint simples que cria apenas a order sem items
+    const orderData = {
+      orderNumber: data.orderNumber || `ORD-${Date.now()}`,
+      customerId: data.customerId || '4F461257-2F49-4667-83E4-A9510DDAE575',
+      storeId: data.storeId || 'c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33',
+      status: data.status || 'pending',
+      totalAmount: data.totalAmount || 0,
+      items: []
+    };
+    return await this.salesService.create(orderData);
+  }
+
   @Put(':id')
   @HttpCode(HttpStatus.OK)
   async update(@Param('id') id: string, @Body() data: any) {
@@ -80,5 +96,23 @@ export class SalesController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async delete(@Param('id') id: string) {
     await this.salesService.delete(id);
+  }
+
+  @Patch(':id/cancel')
+  @HttpCode(HttpStatus.OK)
+  async cancel(@Param('id') id: string, @Body() body: { reason?: string }) {
+    return await this.salesService.cancel(id, body.reason);
+  }
+
+  @Patch(':id/refund')
+  @HttpCode(HttpStatus.OK)
+  async refund(@Param('id') id: string, @Body() body: { amount: number; reason?: string }) {
+    return await this.salesService.refund(id, body.amount, body.reason);
+  }
+
+  @Get('statistics')
+  @HttpCode(HttpStatus.OK)
+  async getStatistics(@Query() filters: any) {
+    return await this.salesService.getStatistics(filters);
   }
 }

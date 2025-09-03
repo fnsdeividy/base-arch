@@ -53,6 +53,7 @@
     "passport-jwt": "^4.0.1"
   },
   "devDependencies": {
-    "ts-loader": "^9.5.4"
+    "ts-loader": "^9.5.4",
+    "ts-node": "^10.9.2"
   }
 }

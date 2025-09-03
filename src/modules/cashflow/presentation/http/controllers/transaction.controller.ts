@@ -15,7 +15,7 @@ import { CreateTransactionDto } from '@modules/cashflow/presentation/dto/createT
 import { UpdateTransactionDto } from '@modules/cashflow/presentation/dto/updateTransaction.dto';
 // import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
 
-@Controller('api/v1/cashflow')
+@Controller('cashflow')
 // @UseGuards(JwtAuthGuard)
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) { }
