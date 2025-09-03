@@ -89,7 +89,8 @@ export class SalesController {
   @HttpCode(HttpStatus.OK)
   async update(@Param('id') id: string, @Body() data: any) {
     await this.salesService.update(id, data);
-    return { message: 'Sale updated successfully' };
+    const updatedSale = await this.salesService.findById(id);
+    return updatedSale;
   }
 
   @Delete(':id')

@@ -126,15 +126,37 @@ export class SalesRepository implements ISalesRepository {
       }, 0);
     }
 
-    // Verificar se o customerId existe, senão usar o padrão
-    let customerId = data.customerId || '4F461257-2F49-4667-83E4-A9510DDAE575';
-    if (data.customerId) {
-      const customerExists = await this.prisma.customer.findUnique({
-        where: { id: data.customerId }
+    // Criar ou encontrar cliente baseado nos dados fornecidos
+    let customerId = '4F461257-2F49-4667-83E4-A9510DDAE575'; // Cliente padrão como fallback
+
+    if (data.customerName) {
+      // Tentar encontrar cliente existente pelo nome
+      const existingCustomer = await this.prisma.customer.findFirst({
+        where: {
+          OR: [
+            { firstName: { contains: data.customerName, mode: 'insensitive' } },
+            { lastName: { contains: data.customerName, mode: 'insensitive' } },
+            { email: data.customerEmail || undefined }
+          ]
+        }
       });
-      if (!customerExists) {
-        console.warn(`Customer with ID ${data.customerId} not found, using default customer`);
-        customerId = '4F461257-2F49-4667-83E4-A9510DDAE575';
+
+      if (existingCustomer) {
+        customerId = existingCustomer.id;
+        console.log(`Using existing customer: ${existingCustomer.firstName} ${existingCustomer.lastName}`);
+      } else {
+        // Criar novo cliente
+        const newCustomer = await this.prisma.customer.create({
+          data: {
+            firstName: data.customerName.split(' ')[0] || data.customerName,
+            lastName: data.customerName.split(' ').slice(1).join(' ') || '',
+            email: data.customerEmail || null,
+            phone: data.customerPhone || null,
+            isActive: true,
+          }
+        });
+        customerId = newCustomer.id;
+        console.log(`Created new customer: ${newCustomer.firstName} ${newCustomer.lastName}`);
       }
     }
 
@@ -160,25 +182,25 @@ export class SalesRepository implements ISalesRepository {
         discount: data.discount || 0,
         tax: data.taxAmount || 0,
         notes: data.notes || '',
-        // orderItems: {
-        //   create: data.items?.map(item => {
-        //     const unitPrice = item.unitPrice || 0;
-        //     const quantity = item.quantity || 1;
-        //     const total = unitPrice * quantity;
+        orderItems: {
+          create: data.items?.map(item => {
+            const unitPrice = item.unitPrice || item.price || 0;
+            const quantity = item.quantity || 1;
+            const total = unitPrice * quantity;
 
-        //     return {
-        //       productId: item.productId,
-        //       productName: item.productName || 'Produto',
-        //       quantity: quantity,
-        //       unitPrice: unitPrice,
-        //       discount: item.discount || 0,
-        //       total: total,
-        //     };
-        //   }) || [],
-        // },
+            return {
+              productId: item.productId,
+              productName: item.productName || 'Produto',
+              quantity: quantity,
+              unitPrice: unitPrice,
+              discount: item.discount || 0,
+              total: total,
+            };
+          }) || [],
+        },
       },
       include: {
-        // orderItems: true,
+        orderItems: true,
         customer: true,
         store: true,
       },
@@ -229,7 +251,10 @@ export class SalesRepository implements ISalesRepository {
     const [totalSales, totalRevenue, salesByStatus] = await Promise.all([
       this.prisma.order.count({ where }),
       this.prisma.order.aggregate({
-        where,
+        where: {
+          ...where,
+          status: 'completed', // Apenas vendas concluídas contam para receita
+        },
         _sum: { total: true },
       }),
       this.prisma.order.groupBy({
@@ -239,7 +264,9 @@ export class SalesRepository implements ISalesRepository {
       }),
     ]);
 
-    const averageTicket = totalSales > 0 ? Number(totalRevenue._sum.total || 0) / totalSales : 0;
+    // Calcular ticket médio apenas com vendas concluídas
+    const completedSalesCount = salesByStatus.find(s => s.status === 'completed')?._count.status || 0;
+    const averageTicket = completedSalesCount > 0 ? Number(totalRevenue._sum.total || 0) / completedSalesCount : 0;
 
     return {
       totalSales,
@@ -272,7 +299,18 @@ export class SalesRepository implements ISalesRepository {
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       userId: 'system', // Fallback para compatibilidade
-      items: [], // orderItems temporariamente desabilitado
+      items: order.orderItems?.map(item => ({
+        id: item.id,
+        orderId: order.id,
+        productId: item.productId,
+        productName: item.productName,
+        quantity: item.quantity,
+        unitPrice: Number(item.unitPrice),
+        price: Number(item.unitPrice), // Para compatibilidade com frontend
+        discount: item.discount ? Number(item.discount) : null,
+        total: Number(item.total),
+        createdAt: item.createdAt,
+      })) || [],
     };
   }
 }
