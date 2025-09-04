@@ -1,54 +1,45 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, Patch, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus } from '@nestjs/common';
 import { UsersService } from '../application/users.service';
-import { CreateUserDto, UpdateUserDto } from '../presentation/interfaces/user.interface';
+import { CreateUserDto, UpdateUserDto } from './interfaces/user.interface';
+import { Public } from '../../../shared/decorators/public.decorator';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
 
+  @Post()
+  create(@Body() createUserDto: CreateUserDto) {
+    return this.usersService.create(createUserDto);
+  }
+
   @Get()
-  async findAll() {
-    const users = await this.usersService.findAll();
-    return {
-      users,
-      total: users.length,
-      page: 1,
-      limit: users.length,
-      totalPages: 1
-    };
+  findAll() {
+    return this.usersService.findAll();
   }
 
   @Get(':id')
-  async findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string) {
     return this.usersService.findOne(id);
   }
 
-  @Post()
-  async create(@Body() data: CreateUserDto) {
-    return this.usersService.create(data);
-  }
-
-  @Put(':id')
-  async update(@Param('id') id: string, @Body() data: UpdateUserDto) {
-    return this.usersService.update(id, data);
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
+    return this.usersService.update(id, updateUserDto);
   }
 
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  remove(@Param('id') id: string) {
     return this.usersService.remove(id);
   }
 
-  @Patch(':id/activate')
+  // Rota temporária para atualizar senhas em texto plano para hash
+  @Public()
+  @Post('update-plaintext-passwords')
   @HttpCode(HttpStatus.OK)
-  async activate(@Param('id') id: string) {
-    return this.usersService.update(id, { isActive: true });
-  }
-
-  @Patch(':id/deactivate')
-  @HttpCode(HttpStatus.OK)
-  async deactivate(@Param('id') id: string) {
-    return this.usersService.update(id, { isActive: false });
+  async updatePlaintextPasswords() {
+    if (process.env.NODE_ENV !== 'development') {
+      return { error: 'Rota disponível apenas em ambiente de desenvolvimento' };
+    }
+    return this.usersService.updatePlaintextPasswords();
   }
 }
-
-

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { User } from '../entities/user.entity';
 import { CreateUserDto, UpdateUserDto } from '../presentation/interfaces/user.interface';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
@@ -62,11 +63,15 @@ export class UsersService {
 
   async create(data: CreateUserDto): Promise<User> {
     // Extrair campos que não existem no modelo User
-    const { role, storeId, ...userData } = data;
+    const { role, storeId, password, ...userData } = data;
+
+    // Hash da senha antes de salvar
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     const user = await this.prisma.user.create({
       data: {
         ...userData,
+        password: hashedPassword,
         isActive: true,
         emailVerified: false,
       },
@@ -96,11 +101,20 @@ export class UsersService {
     const user = await this.findOne(id);
 
     // Extrair campos que não existem no modelo User
-    const { role, storeId, ...userData } = data;
+    const { role, storeId, password, ...userData } = data;
+
+    // Preparar dados para atualização
+    let updateData: any = userData;
+
+    // Se a senha foi fornecida, fazer hash dela
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updateData = { ...userData, password: hashedPassword };
+    }
 
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data: userData,
+      data: updateData,
       select: {
         id: true,
         email: true,
@@ -128,5 +142,34 @@ export class UsersService {
     await this.prisma.user.delete({
       where: { id }
     });
+  }
+
+  // Método para atualizar senhas em texto plano existentes para hash
+  async updatePlaintextPasswords(): Promise<{ updated: number }> {
+    // Buscar usuários com senhas em texto plano (não começam com $2b$ ou $2a$)
+    const users = await this.prisma.user.findMany({
+      where: {
+        NOT: {
+          OR: [
+            { password: { startsWith: '$2b$' } },
+            { password: { startsWith: '$2a$' } }
+          ]
+        }
+      },
+      select: { id: true, password: true }
+    });
+
+    let updatedCount = 0;
+
+    for (const user of users) {
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword }
+      });
+      updatedCount++;
+    }
+
+    return { updated: updatedCount };
   }
 }

@@ -1,6 +1,7 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { JwtAuthGuard } from './shared/presentation/http/guards/jwt-auth.guard';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -19,20 +20,16 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
-  // Middleware para interceptar /sales e redirecionar para a API
-  // app.use('/sales', (req, res, next) => {
-  //   // Redireciona para a rota da API
-  //   const newUrl = `/api/v1/sales${req.url === '/' ? '' : req.url}`;
-  //   req.url = newUrl;
-  //   next();
-  // });
-
   // Configuração de validação global
   app.useGlobalPipes(new ValidationPipe({
     whitelist: true,
     forbidNonWhitelisted: true,
     transform: true,
   }));
+
+  // Configurar guard JWT global
+  const reflector = app.get(Reflector);
+  app.useGlobalGuards(new JwtAuthGuard(reflector));
 
   // Prefixo global para API
   app.setGlobalPrefix('api/v1');
