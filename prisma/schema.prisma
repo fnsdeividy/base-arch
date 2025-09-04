@@ -10,6 +10,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum StoreType {
+  main
+  branch
+  kiosk
+}
+
 model User {
   id            String   @id @default(uuid())
   email         String   @unique
@@ -32,7 +38,7 @@ model User {
 }
 
 model Store {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   name        String
   description String?
   address     String?
@@ -42,10 +48,10 @@ model Store {
   country     String?
   phone       String?
   email       String?
-  type        String?  @default("branch")
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  type        StoreType @default(branch)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   // Relations
   products     Product[]

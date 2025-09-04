@@ -24,7 +24,10 @@ export class UsersService {
 
     return users.map(user => ({
       ...user,
-      name: `${user.firstName} ${user.lastName}`
+      name: `${user.firstName} ${user.lastName}`,
+      role: 'user', // Valor padrão para compatibilidade com frontend
+      storeId: undefined, // Valor padrão para compatibilidade com frontend
+      status: user.isActive ? 'active' : 'inactive', // Converter isActive para status
     })) as User[];
   }
 
@@ -50,14 +53,20 @@ export class UsersService {
 
     return {
       ...user,
-      name: `${user.firstName} ${user.lastName}`
+      name: `${user.firstName} ${user.lastName}`,
+      role: 'user', // Valor padrão para compatibilidade com frontend
+      storeId: undefined, // Valor padrão para compatibilidade com frontend
+      status: user.isActive ? 'active' : 'inactive', // Converter isActive para status
     } as User;
   }
 
   async create(data: CreateUserDto): Promise<User> {
+    // Extrair campos que não existem no modelo User
+    const { role, storeId, ...userData } = data;
+
     const user = await this.prisma.user.create({
       data: {
-        ...data,
+        ...userData,
         isActive: true,
         emailVerified: false,
       },
@@ -76,16 +85,22 @@ export class UsersService {
 
     return {
       ...user,
-      name: `${user.firstName} ${user.lastName}`
+      name: `${user.firstName} ${user.lastName}`,
+      role: role || 'user', // Manter role para compatibilidade com frontend
+      storeId: storeId, // Manter storeId para compatibilidade com frontend
+      status: user.isActive ? 'active' : 'inactive', // Converter isActive para status
     } as User;
   }
 
   async update(id: string, data: UpdateUserDto): Promise<User> {
     const user = await this.findOne(id);
 
+    // Extrair campos que não existem no modelo User
+    const { role, storeId, ...userData } = data;
+
     const updatedUser = await this.prisma.user.update({
       where: { id },
-      data,
+      data: userData,
       select: {
         id: true,
         email: true,
@@ -101,7 +116,10 @@ export class UsersService {
 
     return {
       ...updatedUser,
-      name: `${updatedUser.firstName} ${updatedUser.lastName}`
+      name: `${updatedUser.firstName} ${updatedUser.lastName}`,
+      role: role || 'user', // Manter role para compatibilidade com frontend
+      storeId: storeId, // Manter storeId para compatibilidade com frontend
+      status: updatedUser.isActive ? 'active' : 'inactive', // Converter isActive para status
     } as User;
   }
 
