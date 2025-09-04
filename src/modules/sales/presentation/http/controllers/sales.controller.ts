@@ -28,10 +28,10 @@ export class SalesController {
     return await this.salesService.findAll(pageNum, limitNum);
   }
 
-  @Get(':id')
+  @Get('statistics')
   @HttpCode(HttpStatus.OK)
-  async findById(@Param('id') id: string) {
-    return await this.salesService.findById(id);
+  async getStatistics(@Query() filters: any) {
+    return await this.salesService.getStatistics(filters);
   }
 
   @Get('order/:orderNumber')
@@ -62,6 +62,12 @@ export class SalesController {
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     return await this.salesService.findByStoreId(storeId, pageNum, limitNum);
+  }
+
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  async findById(@Param('id') id: string) {
+    return await this.salesService.findById(id);
   }
 
   @Post()
@@ -109,11 +115,5 @@ export class SalesController {
   @HttpCode(HttpStatus.OK)
   async refund(@Param('id') id: string, @Body() body: { amount: number; reason?: string }) {
     return await this.salesService.refund(id, body.amount, body.reason);
-  }
-
-  @Get('statistics')
-  @HttpCode(HttpStatus.OK)
-  async getStatistics(@Query() filters: any) {
-    return await this.salesService.getStatistics(filters);
   }
 }

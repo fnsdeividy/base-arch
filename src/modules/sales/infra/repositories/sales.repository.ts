@@ -237,6 +237,7 @@ export class SalesRepository implements ISalesRepository {
     salesByStatus: Record<string, number>;
     salesByPaymentMethod: Record<string, number>;
   }> {
+    console.log('SalesRepository.getStatistics called with filters:', filters);
     const where: any = {};
 
     if (filters.startDate && filters.endDate) {

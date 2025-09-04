@@ -41,6 +41,42 @@ export class StockService {
     })) as Stock[];
   }
 
+  async getStockAlerts() {
+    const lowStockItems = await this.prisma.stock.findMany({
+      where: {
+        quantity: {
+          lte: 10
+        }
+      },
+      include: {
+        product: true
+      }
+    });
+
+    const outOfStockItems = await this.prisma.stock.findMany({
+      where: {
+        quantity: 0
+      },
+      include: {
+        product: true
+      }
+    });
+
+    return {
+      lowStock: lowStockItems.map(stock => ({
+        ...stock,
+        maxQuantity: stock.maxQuantity || undefined,
+        location: stock.location || undefined,
+      })),
+      outOfStock: outOfStockItems.map(stock => ({
+        ...stock,
+        maxQuantity: stock.maxQuantity || undefined,
+        location: stock.location || undefined,
+      })),
+      totalAlerts: lowStockItems.length + outOfStockItems.length
+    };
+  }
+
   async getTransactions() {
     return this.prisma.stockTransaction.findMany({
       include: {

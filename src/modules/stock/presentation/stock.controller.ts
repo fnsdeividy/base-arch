@@ -16,6 +16,11 @@ export class StockController {
     return this.stockService.getLowStock();
   }
 
+  @Get('alerts')
+  async getStockAlerts() {
+    return this.stockService.getStockAlerts();
+  }
+
   @Get('transactions')
   async getTransactions() {
     return this.stockService.getTransactions();
