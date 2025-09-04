@@ -16,18 +16,24 @@ import { UpdateTransactionDto } from '@modules/cashflow/presentation/dto/updateT
 // import { JwtAuthGuard } from '@shared/presentation/http/guards/jwt-auth.guard';
 
 @Controller('cashflow')
-// @UseGuards(JwtAuthGuard)
+// @UseGuards(JwtAuthGuard) - Temporariamente desabilitado para desenvolvimento
 export class TransactionController {
   constructor(private readonly transactionService: TransactionService) { }
 
   @Post()
-  create(@Body() createTransactionDto: CreateTransactionDto, @Request() req) {
-    const userId = req.user.id; // Assumindo que o JWT guard adiciona o usuário ao req
-    return this.transactionService.create(createTransactionDto, userId);
+  async create(@Body() createTransactionDto: CreateTransactionDto, @Request() req) {
+    // Para desenvolvimento, usar um userId padrão quando não há autenticação
+    const userId = req.user?.id || 'dev-user-id';
+    const result = await this.transactionService.create(createTransactionDto, userId);
+
+    return {
+      success: true,
+      data: result
+    };
   }
 
   @Get()
-  findAll(
+  async findAll(
     @Query('type') type?: string,
     @Query('category') category?: string,
     @Query('startDate') startDate?: string,
@@ -38,7 +44,7 @@ export class TransactionController {
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
-    return this.transactionService.findAll({
+    const result = await this.transactionService.findAll({
       type: type as any,
       category,
       startDate,
@@ -49,6 +55,11 @@ export class TransactionController {
       page,
       limit
     });
+
+    return {
+      success: true,
+      data: result
+    };
   }
 
   @Get(':id')
@@ -67,12 +78,17 @@ export class TransactionController {
   }
 
   @Get('summary/overview')
-  getCashFlowSummary(
+  async getCashFlowSummary(
     @Query('startDate') startDate?: string,
     @Query('endDate') endDate?: string,
     @Query('storeId') storeId?: string,
   ) {
-    return this.transactionService.getCashFlowSummary({ startDate, endDate, storeId });
+    const result = await this.transactionService.getCashFlowSummary({ startDate, endDate, storeId });
+
+    return {
+      success: true,
+      data: result
+    };
   }
 
   @Get('categories/list')

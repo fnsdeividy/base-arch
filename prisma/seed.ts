@@ -86,6 +86,47 @@ async function main() {
     },
   });
 
+  // Criar role cashier
+  const cashierRole = await prisma.role.upsert({
+    where: { name: 'cashier' },
+    update: {},
+    create: {
+      name: 'cashier',
+      description: 'Cashier user role',
+      isSystem: true,
+    },
+  });
+
+  // Criar usuário caixa
+  const cashierPassword = await bcrypt.hash('caixa123', 10);
+  const cashierUser = await prisma.user.upsert({
+    where: { email: 'caixa@example.com' },
+    update: {},
+    create: {
+      email: 'caixa@example.com',
+      password: cashierPassword,
+      firstName: 'Operador',
+      lastName: 'Caixa',
+      isActive: true,
+      emailVerified: true,
+    },
+  });
+
+  // Associar usuário caixa ao role cashier
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: {
+        userId: cashierUser.id,
+        roleId: cashierRole.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: cashierUser.id,
+      roleId: cashierRole.id,
+    },
+  });
+
   // Criar loja principal
   const mainStore = await prisma.store.upsert({
     where: { id: 'c2eebc99-9c0b-4ef8-bb6d-6bb9bd380a33' },
