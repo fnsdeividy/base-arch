@@ -29,6 +29,7 @@ export class UsersService {
       role: 'user', // Valor padrão para compatibilidade com frontend
       storeId: undefined, // Valor padrão para compatibilidade com frontend
       status: user.isActive ? 'active' : 'inactive', // Converter isActive para status
+      lastLogin: user.updatedAt, // Usar updatedAt como lastLogin temporariamente
     })) as User[];
   }
 
@@ -58,6 +59,7 @@ export class UsersService {
       role: 'user', // Valor padrão para compatibilidade com frontend
       storeId: undefined, // Valor padrão para compatibilidade com frontend
       status: user.isActive ? 'active' : 'inactive', // Converter isActive para status
+      lastLogin: user.updatedAt, // Usar updatedAt como lastLogin temporariamente
     } as User;
   }
 
@@ -94,6 +96,7 @@ export class UsersService {
       role: role || 'user', // Manter role para compatibilidade com frontend
       storeId: storeId, // Manter storeId para compatibilidade com frontend
       status: user.isActive ? 'active' : 'inactive', // Converter isActive para status
+      lastLogin: user.updatedAt, // Usar updatedAt como lastLogin temporariamente
     } as User;
   }
 
@@ -134,6 +137,7 @@ export class UsersService {
       role: role || 'user', // Manter role para compatibilidade com frontend
       storeId: storeId, // Manter storeId para compatibilidade com frontend
       status: updatedUser.isActive ? 'active' : 'inactive', // Converter isActive para status
+      lastLogin: updatedUser.updatedAt, // Usar updatedAt como lastLogin temporariamente
     } as User;
   }
 
