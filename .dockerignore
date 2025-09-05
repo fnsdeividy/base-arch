@@ -1,0 +1,42 @@
+# Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Testing
+coverage/
+test/
+*.test.ts
+*.spec.ts
+
+# Development
+.git/
+.gitignore
+README.md
+.env.example
+.vscode/
+.idea/
+
+# Build artifacts
+dist/
+
+# Cache
+.npm/
+.cache/
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Documentation
+docs/
+screenshots/
