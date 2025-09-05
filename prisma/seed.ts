@@ -4,16 +4,30 @@ import * as bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  // Criar usuário admin
+  // Criar usuário admin - Cassio
   const hashedPassword = await bcrypt.hash('admin123', 10);
-  const adminUser = await prisma.user.upsert({
-    where: { email: 'admin@example.com' },
+  const adminUser1 = await prisma.user.upsert({
+    where: { email: 'cassiobrr@gmail.com' },
     update: {},
     create: {
-      email: 'admin@example.com',
+      email: 'cassiobrr@gmail.com',
       password: hashedPassword,
-      firstName: 'Admin',
-      lastName: 'User',
+      firstName: 'Cassio',
+      lastName: 'Admin',
+      isActive: true,
+      emailVerified: true,
+    },
+  });
+
+  // Criar usuário admin - Cristiano
+  const adminUser2 = await prisma.user.upsert({
+    where: { email: 'cristianosenna79@gmail.com' },
+    update: {},
+    create: {
+      email: 'cristianosenna79@gmail.com',
+      password: hashedPassword,
+      firstName: 'Cristiano',
+      lastName: 'Senna',
       isActive: true,
       emailVerified: true,
     },
@@ -30,17 +44,31 @@ async function main() {
     },
   });
 
-  // Associar usuário ao role admin
+  // Associar usuários ao role admin
   await prisma.userRole.upsert({
     where: {
       userId_roleId: {
-        userId: adminUser.id,
+        userId: adminUser1.id,
         roleId: adminRole.id,
       },
     },
     update: {},
     create: {
-      userId: adminUser.id,
+      userId: adminUser1.id,
+      roleId: adminRole.id,
+    },
+  });
+
+  await prisma.userRole.upsert({
+    where: {
+      userId_roleId: {
+        userId: adminUser2.id,
+        roleId: adminRole.id,
+      },
+    },
+    update: {},
+    create: {
+      userId: adminUser2.id,
       roleId: adminRole.id,
     },
   });
@@ -159,35 +187,65 @@ async function main() {
     },
   });
 
-  // Criar produtos de exemplo
+  // Criar produtos de limpeza
   const products = [
     {
       id: 'B96D1208-BF58-4A45-8307-24005C8C46C8',
-      name: 'Notebook Dell Inspiron 15',
-      description: 'Notebook Dell Inspiron 15 com processador Intel Core i5, 8GB RAM, 256GB SSD',
-      price: 2499.99,
-      sku: 'NB-DELL-001',
-      category: 'Notebooks',
+      name: 'Desinfetante Cloro Ativo 5L',
+      description: 'Desinfetante concentrado à base de cloro ativo para limpeza pesada e desinfecção de superfícies',
+      price: 24.99,
+      sku: 'DESINF-CL-5L',
+      category: 'Desinfetantes',
       storeId: mainStore.id,
       isActive: true,
     },
     {
       id: '0A915B12-C5CD-4978-BF09-2C7D275B082C',
-      name: 'Mouse Logitech MX Master 3',
-      description: 'Mouse sem fio Logitech MX Master 3 com sensor de alta precisão',
-      price: 399.99,
-      sku: 'MS-LOG-001',
-      category: 'Periféricos',
+      name: 'Detergente Neutro Multiuso 1L',
+      description: 'Detergente neutro concentrado para limpeza geral, pisos, azulejos e superfícies diversas',
+      price: 12.50,
+      sku: 'DET-NEUT-1L',
+      category: 'Detergentes',
       storeId: mainStore.id,
       isActive: true,
     },
     {
       id: '4226C6AC-38CF-41A0-B9D8-4A13906333EF',
-      name: 'Teclado Mecânico Keychron K2',
-      description: 'Teclado mecânico sem fio Keychron K2 com switches Brown',
-      price: 599.99,
-      sku: 'KB-KEY-001',
-      category: 'Periféricos',
+      name: 'Álcool Gel 70% Antisséptico 500ml',
+      description: 'Álcool gel 70% para higienização das mãos e superfícies, com ação antisséptica',
+      price: 8.90,
+      sku: 'ALC-GEL-500ML',
+      category: 'Antissépticos',
+      storeId: mainStore.id,
+      isActive: true,
+    },
+    {
+      id: 'F1A2B3C4-D5E6-F7G8-H9I0-J1K2L3M4N5O6',
+      name: 'Sabão em Pó Enzimático 2kg',
+      description: 'Sabão em pó com enzimas ativas para remoção de manchas difíceis e limpeza profunda',
+      price: 18.75,
+      sku: 'SAB-ENZ-2KG',
+      category: 'Sabões',
+      storeId: mainStore.id,
+      isActive: true,
+    },
+    {
+      id: 'A1B2C3D4-E5F6-G7H8-I9J0-K1L2M3N4O5P6',
+      name: 'Limpa Vidros Spray 500ml',
+      description: 'Limpa vidros profissional em spray, remove sujeira e gordura sem deixar manchas',
+      price: 9.99,
+      sku: 'LV-SPRAY-500ML',
+      category: 'Limpadores Especiais',
+      storeId: mainStore.id,
+      isActive: true,
+    },
+    {
+      id: 'Q1W2E3R4-T5Y6-U7I8-O9P0-A1S2D3F4G5H6',
+      name: 'Água Sanitária 2L',
+      description: 'Água sanitária concentrada para desinfecção, branqueamento e limpeza de banheiros',
+      price: 6.50,
+      sku: 'AG-SAN-2L',
+      category: 'Desinfetantes',
       storeId: mainStore.id,
       isActive: true,
     },
@@ -202,11 +260,14 @@ async function main() {
   }
 
   console.log('Seed completed successfully');
-  console.log('Admin user: admin@example.com / admin123');
+  console.log('Admin users:');
+  console.log('  - cassiobrr@gmail.com / admin123');
+  console.log('  - cristianosenna79@gmail.com / admin123');
   console.log('Test user: test@example.com / test123');
+  console.log('Cashier user: caixa@example.com / caixa123');
   console.log('Main store created with ID:', mainStore.id);
   console.log('Default customer created with ID:', defaultCustomer.id);
-  console.log('Products created:', products.length);
+  console.log('Cleaning products created:', products.length);
 }
 
 main()
