@@ -20,6 +20,7 @@ import { StockModule } from './modules/stock/stock.module';
 import { ProductsModule } from './modules/product/products.module';
 import { UserModule } from './modules/user/user.module';
 import { AuthModule } from './modules/auth/auth.module';
+import { ProductionModule } from './modules/production/production.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { AuthModule } from './modules/auth/auth.module';
     ProductsModule,
     UserModule,
     AuthModule,
+    ProductionModule,
   ],
   controllers: [AppController],
   providers: [AppService],
