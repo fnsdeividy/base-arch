@@ -14,9 +14,13 @@ async function bootstrap() {
       'http://localhost:5175',
       'http://localhost:3000',
       'http://localhost:4173',
+      // Produção - adicione seu domínio Vercel aqui
+      'https://your-app-name.vercel.app',
+      // Permitir qualquer subdomínio da Vercel durante desenvolvimento
+      /^https:\/\/.*\.vercel\.app$/,
     ],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
