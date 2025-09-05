@@ -1,27 +1,18 @@
 services:
   - type: web
-    name: rosy-sales-backend
+    name: cloro-backend
     env: node
     plan: free
-    buildCommand: npm install && npm run build && npx prisma generate
+    buildCommand: npm run build:prod
     startCommand: npm run start:prod
     envVars:
       - key: NODE_ENV
         value: production
-      - key: DATABASE_URL
-        fromDatabase:
-          name: rosy-sales-db
-          property: connectionString
-      - key: JWT_SECRET
-        generateValue: true
-      - key: JWT_EXPIRES_IN
-        value: 7d
-      - key: PORT
-        value: 3001
-    
-  - type: pserv
-    name: rosy-sales-db
-    env: postgresql
-    plan: free
-    databaseName: rosy_sales_db
-    databaseUser: rosy_user
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=400 --optimize-for-size"
+      - key: CI
+        value: "true"
+    disk:
+      name: cloro-backend-disk
+      mountPath: /opt/render/project/src/dist
+      sizeGB: 1

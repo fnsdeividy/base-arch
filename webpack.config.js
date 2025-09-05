@@ -13,6 +13,11 @@ module.exports = (options, webpack) => {
       ...options.output,
       libraryTarget: 'commonjs2',
     },
+    optimization: {
+      ...options.optimization,
+      minimize: false, // Desabilita minificação para economizar memória
+      splitChunks: false, // Desabilita divisão de chunks para economizar memória
+    },
     plugins: [
       ...options.plugins,
       new webpack.IgnorePlugin({
@@ -34,6 +39,10 @@ module.exports = (options, webpack) => {
         '@modules': path.resolve(__dirname, 'src/modules'),
         '@shared': path.resolve(__dirname, 'src/shared'),
       },
+    },
+    stats: 'errors-only', // Reduz output para economizar memória
+    performance: {
+      hints: false, // Desabilita avisos de performance
     },
   };
 };
