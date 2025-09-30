@@ -42,7 +42,7 @@ export class AuthService {
       // Get user roles
       const userRoles = await this.prisma.userRole.findMany({
         where: { userId: user.id },
-        include: { role: true }
+        include: {role: true }
       });
 
       const roles = userRoles.map(ur => ur.role.name);
