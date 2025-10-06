@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: cloro-backend
+    env: node
+    plan: free
+    buildCommand: npm run build:prod
+    startCommand: npm run start:prod
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_OPTIONS
+        value: "--max-old-space-size=400 --optimize-for-size"
+      - key: CI
+        value: "true"
+    disk:
+      name: cloro-backend-disk
+      mountPath: /opt/render/project/src/dist
+      sizeGB: 1

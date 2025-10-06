@@ -1,0 +1,510 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum StoreType {
+  main
+  branch
+  kiosk
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  firstName     String   @map("first_name")
+  lastName      String   @map("last_name")
+  phone         String?
+  isActive      Boolean  @default(true) @map("is_active")
+  emailVerified Boolean  @default(false) @map("email_verified")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  userRoles    UserRole[]
+  sessions     Session[]
+  auditLogs    AuditLog[]
+  transactions Transaction[]
+
+  @@map("users")
+}
+
+model Store {
+  id          String    @id @default(uuid())
+  name        String
+  description String?
+  address     String?
+  city        String?
+  state       String?
+  zipCode     String?
+  country     String?
+  phone       String?
+  email       String?
+  type        StoreType @default(branch)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  products     Product[]
+  stock        Stock[]
+  orders       Order[]
+  transactions Transaction[]
+
+  @@map("stores")
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  sku         String?  @unique
+  barcode     String?  @unique
+  price       Decimal  @db.Decimal(10, 2)
+  costPrice   Decimal? @db.Decimal(10, 2)
+  category    String?
+  brand       String?
+  weight      Decimal? @db.Decimal(8, 3)
+  dimensions  String?
+  isActive    Boolean  @default(true)
+  storeId     String
+  baseUnit    Unit?    @map("base_unit")
+  outputUnit  Unit?    @map("output_unit")
+  outputUnitSize Decimal? @map("output_unit_size") @db.Decimal(10, 3)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  store           Store                   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  stock           Stock[]
+  orderItems      OrderItem[]
+  bom             ProductBom[]
+  productionOrders ProductionOrder[]
+  finishedGoods   FinishedGoodsInventory[]
+  costCache       ProductCostCache?
+
+  @@map("products")
+}
+
+model Stock {
+  id          String   @id @default(uuid())
+  productId   String
+  storeId     String
+  quantity    Int
+  minQuantity Int      @default(0)
+  maxQuantity Int?
+  location    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  product      Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  store        Store              @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  transactions StockTransaction[]
+
+  @@unique([productId, storeId])
+  @@map("stock")
+}
+
+model StockTransaction {
+  id          String   @id @default(uuid())
+  stockId     String
+  type        String // in, out, adjustment
+  quantity    Int
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  stock Stock @relation(fields: [stockId], references: [id], onDelete: Cascade)
+
+  @@map("stock_transactions")
+}
+
+model Customer {
+  id        String    @id @default(uuid())
+  firstName String    @map("first_name")
+  lastName  String    @map("last_name")
+  email     String?   @unique
+  phone     String?
+  address   String?
+  city      String?
+  state     String?
+  zipCode   String?   @map("zip_code")
+  birthDate DateTime? @map("birth_date") @db.Date
+  isActive  Boolean   @default(true) @map("is_active")
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  // Relations
+  orders   Order[]
+  invoices Invoice[]
+
+  @@map("customers")
+}
+
+model Order {
+  id            String   @id @default(uuid())
+  orderNumber   String   @unique @map("order_number")
+  customerId    String   @map("customer_id")
+  storeId       String   @map("store_id")
+  total         Decimal  @db.Decimal(10, 2)
+  discount      Decimal? @db.Decimal(10, 2)
+  tax           Decimal? @map("tax") @db.Decimal(10, 2)
+  status        String   @default("pending")
+  paymentMethod String   @default("cash") @map("payment_method")
+  notes         String?
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  store      Store       @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+  invoices   Invoice[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  productId   String
+  productName String
+  quantity    Int
+  unitPrice   Decimal  @db.Decimal(10, 2)
+  discount    Decimal? @db.Decimal(5, 2)
+  total       Decimal  @db.Decimal(10, 2)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("order_items")
+}
+
+model Invoice {
+  id            String    @id @default(uuid())
+  invoiceNumber String    @unique
+  series        String?
+  orderId       String?
+  customerId    String
+  customerName  String
+  status        String    @default("draft")
+  issueDate     DateTime  @default(now())
+  dueDate       DateTime?
+  totalAmount   Decimal   @db.Decimal(10, 2)
+  taxAmount     Decimal?  @db.Decimal(10, 2)
+  notes         String?
+  storeId       String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  order    Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@map("invoices")
+}
+
+model Transaction {
+  id          String   @id @default(uuid())
+  type        String // income, expense, transfer
+  category    String
+  description String
+  amount      Decimal  @db.Decimal(10, 2)
+  date        DateTime
+  reference   String?
+  storeId     String?
+  userId      String
+  attachments String[]
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  store Store? @relation(fields: [storeId], references: [id])
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("transactions")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  isSystem    Boolean  @default(false) @map("is_system")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  resource    String
+  action      String
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  userId    String   @map("user_id")
+  roleId    String   @map("role_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  roleId       String   @map("role_id")
+  permissionId String   @map("permission_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+model Session {
+  id               String   @id @default(uuid())
+  userId           String   @map("user_id")
+  refreshTokenHash String   @map("refresh_token_hash")
+  expiresAt        DateTime @map("expires_at")
+  ipAddress        String?  @map("ip_address")
+  userAgent        String?  @map("user_agent")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?  @map("user_id")
+  action       String
+  resourceType String   @map("resource_type")
+  resourceId   String?  @map("resource_id")
+  details      Json?
+  ipAddress    String?  @map("ip_address")
+  userAgent    String?  @map("user_agent")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Relations
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}
+
+// Production Module Models
+
+enum Unit {
+  g
+  kg
+  ml
+  L
+  un
+}
+
+enum CostingMethod {
+  fifo
+  wac // Weighted Average Cost
+}
+
+enum BatchStatus {
+  available
+  reserved
+  consumed
+}
+
+enum ProductionOrderStatus {
+  draft
+  in_progress
+  finished
+  canceled
+}
+
+model Material {
+  id               String   @id @default(uuid())
+  name             String
+  baseUnit         Unit     @map("base_unit")
+  densityGPerMl    Decimal? @map("density_g_per_ml") @db.Decimal(8, 4)
+  sku              String?  @unique
+  minStock         Decimal  @default(0) @map("min_stock") @db.Decimal(10, 3)
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  batches          MaterialBatch[]
+  bomItems         ProductBom[]
+  conversions      UnitConversion[]
+  consumptions     ProductionConsumption[]
+
+  @@map("materials")
+}
+
+model MaterialBatch {
+  id           String      @id @default(uuid())
+  materialId   String      @map("material_id")
+  qty          Decimal     @db.Decimal(12, 3)
+  unit         Unit
+  unitCost     Decimal     @map("unit_cost") @db.Decimal(10, 4)
+  totalCost    Decimal     @map("total_cost") @db.Decimal(12, 2)
+  supplier     String?
+  lotCode      String?     @map("lot_code")
+  expiryDate   DateTime?   @map("expiry_date") @db.Date
+  receivedAt   DateTime    @map("received_at")
+  status       BatchStatus @default(available)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  material     Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  consumptions ProductionConsumption[]
+
+  @@map("material_batches")
+}
+
+model ProductBom {
+  id           String  @id @default(uuid())
+  productId    String  @map("product_id")
+  materialId   String  @map("material_id")
+  qty          Decimal @db.Decimal(10, 3)
+  unit         Unit
+  wastePercent Decimal @default(0) @map("waste_percent") @db.Decimal(5, 2)
+  notes        String?
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  material Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, materialId])
+  @@map("product_bom")
+}
+
+model ProductionOrder {
+  id                         String                 @id @default(uuid())
+  productId                  String                 @map("product_id")
+  plannedOutputQty           Decimal                @map("planned_output_qty") @db.Decimal(10, 3)
+  plannedUnit                Unit                   @map("planned_unit")
+  actualOutputQty            Decimal?               @map("actual_output_qty") @db.Decimal(10, 3)
+  startedAt                  DateTime?              @map("started_at")
+  finishedAt                 DateTime?              @map("finished_at")
+  status                     ProductionOrderStatus  @default(draft)
+  costingMethodSnapshot      CostingMethod          @map("costing_method_snapshot")
+  overheadPercent            Decimal                @default(0) @map("overhead_percent") @db.Decimal(5, 2)
+  packagingCostPerOutputUnit Decimal                @default(0) @map("packaging_cost_per_output_unit") @db.Decimal(8, 4)
+  totalMaterialCost          Decimal?               @map("total_material_cost") @db.Decimal(12, 2)
+  totalPackagingCost         Decimal?               @map("total_packaging_cost") @db.Decimal(12, 2)
+  totalOverheadCost          Decimal?               @map("total_overhead_cost") @db.Decimal(12, 2)
+  totalCost                  Decimal?               @map("total_cost") @db.Decimal(12, 2)
+  unitCost                   Decimal?               @map("unit_cost") @db.Decimal(10, 4)
+  batchCode                  String?                @map("batch_code")
+  createdAt                  DateTime               @default(now()) @map("created_at")
+  updatedAt                  DateTime               @updatedAt @map("updated_at")
+
+  // Relations
+  product      Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  consumptions ProductionConsumption[]
+  finishedGoods FinishedGoodsInventory[]
+
+  @@map("production_orders")
+}
+
+model ProductionConsumption {
+  id                String @id @default(uuid())
+  productionOrderId String @map("production_order_id")
+  materialId        String @map("material_id")
+  batchId           String? @map("batch_id")
+  qty               Decimal @db.Decimal(12, 3)
+  unit              Unit
+  unitCostApplied   Decimal @map("unit_cost_applied") @db.Decimal(10, 4)
+  totalCost         Decimal @map("total_cost") @db.Decimal(12, 2)
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relations
+  productionOrder ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
+  material        Material @relation(fields: [materialId], references: [id], onDelete: Cascade)
+  batch           MaterialBatch? @relation(fields: [batchId], references: [id], onDelete: SetNull)
+
+  @@map("production_consumptions")
+}
+
+model UnitConversion {
+  id         String  @id @default(uuid())
+  materialId String? @map("material_id")
+  fromUnit   Unit    @map("from_unit")
+  toUnit     Unit    @map("to_unit")
+  factor     Decimal @db.Decimal(12, 6)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  // Relations
+  material Material? @relation(fields: [materialId], references: [id], onDelete: Cascade)
+
+  @@unique([materialId, fromUnit, toUnit])
+  @@map("unit_conversions")
+}
+
+model FinishedGoodsInventory {
+  id                String @id @default(uuid())
+  productId         String @map("product_id")
+  productionOrderId String @map("production_order_id")
+  qty               Decimal @db.Decimal(12, 3)
+  unit              Unit
+  unitCost          Decimal @map("unit_cost") @db.Decimal(10, 4)
+  batchCode         String @map("batch_code")
+  createdAt         DateTime @default(now()) @map("created_at")
+
+  // Relations
+  product         Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productionOrder ProductionOrder @relation(fields: [productionOrderId], references: [id], onDelete: Cascade)
+
+  @@map("finished_goods_inventory")
+}
+
+model ProductCostCache {
+  id                String        @id @default(uuid())
+  productId         String        @unique @map("product_id")
+  lastCalculatedAt  DateTime      @map("last_calculated_at")
+  unitCost          Decimal       @map("unit_cost") @db.Decimal(10, 4)
+  method            CostingMethod
+  createdAt         DateTime      @default(now()) @map("created_at")
+  updatedAt         DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("product_cost_cache")
+}

@@ -1,40 +1,21 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, PrimaryColumn, ManyToMany, JoinTable } from 'typeorm';
-import { Role } from '../../role/entities/role.entity';
-
-@Entity()
 export class User {
-  @PrimaryColumn('uuid')
   id: string;
-
-  @Column()
-  firstName: string;
-
-  @Column()
-  lastName: string;
-
-  @Column({ default: true })
-  isActive: boolean;
-
-  @Column()
   email: string;
-
-  @Column()
-  password?: string;
-
-  @Column({ nullable: true })
+  password: string;
+  firstName: string;
+  lastName: string;
   phone?: string;
-
-  @CreateDateColumn()
+  isActive: boolean;
+  emailVerified: boolean;
+  role: string;
+  status: string;
+  lastLogin?: Date;
+  storeId?: string;
   createdAt: Date;
-
-  @UpdateDateColumn()
   updatedAt: Date;
 
-  @ManyToMany(() => Role, role => role.users)
-  @JoinTable({
-    name: 'user_roles',
-    joinColumn: { name: 'user_id', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'role_id', referencedColumnName: 'id' }
-  })
-  roles: Role[];
+  // Computed property
+  get name(): string {
+    return `${this.firstName} ${this.lastName}`;
+  }
 }

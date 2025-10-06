@@ -1,29 +1,12 @@
-import { IBaseRepository } from '@shared/presentation/interfaces/baseRepository';
-import { User } from '@modules/user/entities/user.entity';
-import { UpdateUserDto } from '@modules/user/presentation/dto/updateUser.dto';
-
-export interface IUser {
-  id: string;
-  email: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-  phone?: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { User } from '../../entities/user.entity';
+import { Request } from 'express';
 
 export interface IUserService {
-  createUser(createUserDto: CreateUserDto): Promise<User>
-  updateUser(id: string, payload: UpdateUserDto): Promise<User | null>
-  findById(id: string): Promise<User | null>
-  deleteUser(id: string): Promise<void>
-}
-
-export interface IUserRepository extends IBaseRepository<User> {
-  findByEmail(email: string): Promise<User | null>;
-  findById(id: string): Promise<User | null>;
+  findAll(): Promise<User[]>;
+  findOne(id: string): Promise<User>;
+  create(data: CreateUserDto): Promise<User>;
+  update(id: string, data: UpdateUserDto): Promise<User>;
+  remove(id: string): Promise<void>;
 }
 
 export interface CreateUserDto {
@@ -32,11 +15,21 @@ export interface CreateUserDto {
   firstName: string;
   lastName: string;
   phone?: string;
+  role?: string;
+  storeId?: string;
+}
+
+export interface UpdateUserDto {
+  email?: string;
+  password?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  role?: string;
+  storeId?: string;
+  isActive?: boolean;
 }
 
 export interface AuthenticatedRequest extends Request {
-  user: { userId: string },
+  user?: User;
 }
-
-
-export const USER_REPOSITORY = 'USER_REPOSITORY';
