@@ -18,17 +18,7 @@ export class ProductsService {
 
     console.log(`📦 Encontrados ${products.length} produtos:`, products);
 
-    return products.map(product => ({
-      ...product,
-      description: product.description || undefined,
-      sku: product.sku || undefined,
-      barcode: product.barcode || undefined,
-      costPrice: product.costPrice || undefined,
-      category: product.category || undefined,
-      brand: product.brand || undefined,
-      weight: product.weight || undefined,
-      dimensions: product.dimensions || undefined,
-    })) as Product[];
+    return products;
   }
 
   async findOne(id: string): Promise<Product> {
@@ -43,17 +33,7 @@ export class ProductsService {
       throw new NotFoundException(`Product with ID ${id} not found`);
     }
 
-    return {
-      ...product,
-      description: product.description || undefined,
-      sku: product.sku || undefined,
-      barcode: product.barcode || undefined,
-      costPrice: product.costPrice || undefined,
-      category: product.category || undefined,
-      brand: product.brand || undefined,
-      weight: product.weight || undefined,
-      dimensions: product.dimensions || undefined,
-    } as Product;
+    return product;
   }
 
   async create(data: CreateProductDto): Promise<Product> {
@@ -67,17 +47,7 @@ export class ProductsService {
       }
     });
 
-    return {
-      ...product,
-      description: product.description || undefined,
-      sku: product.sku || undefined,
-      barcode: product.barcode || undefined,
-      costPrice: product.costPrice || undefined,
-      category: product.category || undefined,
-      brand: product.brand || undefined,
-      weight: product.weight || undefined,
-      dimensions: product.dimensions || undefined,
-    } as Product;
+    return product;
   }
 
   async update(id: string, data: UpdateProductDto): Promise<Product> {
@@ -91,17 +61,7 @@ export class ProductsService {
       }
     });
 
-    return {
-      ...updatedProduct,
-      description: updatedProduct.description || undefined,
-      sku: updatedProduct.sku || undefined,
-      barcode: updatedProduct.barcode || undefined,
-      costPrice: updatedProduct.costPrice || undefined,
-      category: updatedProduct.category || undefined,
-      brand: updatedProduct.brand || undefined,
-      weight: updatedProduct.weight || undefined,
-      dimensions: updatedProduct.dimensions || undefined,
-    } as Product;
+    return updatedProduct;
   }
 
   async remove(id: string): Promise<void> {
