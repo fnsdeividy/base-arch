@@ -9,14 +9,13 @@ export class CustomerService {
     const skip = (page - 1) * limit;
 
     const where: any = {};
-
+    
     if (filters.search) {
       where.OR = [
         { firstName: { contains: filters.search, mode: 'insensitive' } },
         { lastName: { contains: filters.search, mode: 'insensitive' } },
         { email: { contains: filters.search, mode: 'insensitive' } },
         { phone: { contains: filters.search, mode: 'insensitive' } },
-        { document: { contains: filters.search, mode: 'insensitive' } },
       ];
     }
 
@@ -87,7 +86,6 @@ export class CustomerService {
         lastName: data.lastName,
         email: data.email,
         phone: data.phone,
-        document: data.document,
         address: data.address,
         city: data.city,
         state: data.state,
@@ -108,7 +106,6 @@ export class CustomerService {
         lastName: data.lastName ?? customer.lastName,
         email: data.email ?? customer.email,
         phone: data.phone ?? customer.phone,
-        document: data.document ?? customer.document,
         address: data.address ?? customer.address,
         city: data.city ?? customer.city,
         state: data.state ?? customer.state,
