@@ -123,6 +123,11 @@ export class BomController {
     return this.materialsService.createBomItem(data);
   }
 
+  @Post('batch')
+  async createBomItemsBatch(@Body() data: CreateProductBomDto[]) {
+    return this.materialsService.createBomItemsBatch(data);
+  }
+
   @Put(':id')
   async updateBomItem(
     @Param('id', ParseUUIDPipe) id: string,

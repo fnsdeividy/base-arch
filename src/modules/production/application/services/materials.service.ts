@@ -248,6 +248,41 @@ export class MaterialsService {
     });
   }
 
+  async createBomItemsBatch(items: CreateProductBomDto[]) {
+    // Validate all items first
+    for (const item of items) {
+      // Verify product exists
+      const product = await this.prisma.product.findUnique({
+        where: { id: item.productId },
+      });
+      if (!product) {
+        throw new NotFoundException(`Product with ID ${item.productId} not found`);
+      }
+
+      // Verify material exists
+      await this.findMaterialById(item.materialId);
+    }
+
+    // Create all items in a transaction
+    return this.prisma.$transaction(async (tx) => {
+      const createdItems = [];
+      for (const item of items) {
+        const created = await tx.productBom.create({
+          data: {
+            ...item,
+            wastePercent: item.wastePercent || 0,
+          },
+          include: {
+            material: true,
+            product: true,
+          },
+        });
+        createdItems.push(created);
+      }
+      return createdItems;
+    });
+  }
+
   async updateBomItem(id: string, data: UpdateProductBomDto) {
     const bomItem = await this.prisma.productBom.findUnique({
       where: { id },
