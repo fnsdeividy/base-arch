@@ -265,7 +265,7 @@ export class MaterialsService {
 
     // Create all items in a transaction
     return this.prisma.$transaction(async (tx) => {
-      const createdItems = [];
+      const createdItems: any[] = [];
       for (const item of items) {
         const created = await tx.productBom.create({
           data: {

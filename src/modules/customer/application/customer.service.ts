@@ -192,4 +192,72 @@ export class CustomerService {
       currentPage: page,
     };
   }
+
+  async exportToCSV(filters: {
+    search?: string;
+    isActive?: boolean;
+    city?: string;
+    state?: string;
+  } = {}): Promise<string> {
+    const where: any = {};
+
+    if (filters.search) {
+      where.OR = [
+        { firstName: { contains: filters.search, mode: 'insensitive' } },
+        { lastName: { contains: filters.search, mode: 'insensitive' } },
+        { email: { contains: filters.search, mode: 'insensitive' } },
+        { phone: { contains: filters.search, mode: 'insensitive' } },
+      ];
+    }
+
+    if (filters.isActive !== undefined) {
+      where.isActive = filters.isActive;
+    }
+
+    if (filters.city) {
+      where.city = { contains: filters.city, mode: 'insensitive' };
+    }
+
+    if (filters.state) {
+      where.state = { contains: filters.state, mode: 'insensitive' };
+    }
+
+    const customers = await this.prisma.customer.findMany({
+      where,
+      orderBy: { firstName: 'asc' },
+    });
+
+    // Cabeçalho do CSV
+    const headers = [
+      'Nome',
+      'Sobrenome',
+      'Email',
+      'Telefone',
+      'Endereço',
+      'Cidade',
+      'Estado',
+      'CEP',
+      'Status',
+      'Data de Cadastro',
+    ];
+
+    // Converter dados para CSV
+    const csvRows = [
+      headers.join(','), // Cabeçalho
+      ...customers.map(customer => [
+        `"${customer.firstName || ''}"`,
+        `"${customer.lastName || ''}"`,
+        `"${customer.email || ''}"`,
+        `"${customer.phone || ''}"`,
+        `"${customer.address || ''}"`,
+        `"${customer.city || ''}"`,
+        `"${customer.state || ''}"`,
+        `"${customer.zipCode || ''}"`,
+        customer.isActive ? 'Ativo' : 'Inativo',
+        `"${customer.createdAt.toISOString().split('T')[0]}"`,
+      ].join(','))
+    ];
+
+    return csvRows.join('\n');
+  }
 }

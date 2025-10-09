@@ -9,7 +9,9 @@ import {
   Query,
   HttpStatus,
   HttpCode,
+  Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { CustomerService } from '../application/customer.service';
 
 @Controller('customers')
@@ -91,5 +93,31 @@ export class CustomerController {
     const pageNum = parseInt(page, 10);
     const limitNum = parseInt(limit, 10);
     return this.customerService.getCustomerOrders(id, pageNum, limitNum);
+  }
+
+  @Get('export/csv')
+  async exportToCSV(
+    @Res() res: Response,
+    @Query('search') search?: string,
+    @Query('isActive') isActive?: string,
+    @Query('city') city?: string,
+    @Query('state') state?: string,
+  ) {
+    const filters = {
+      search,
+      isActive: isActive ? isActive === 'true' : undefined,
+      city,
+      state,
+    };
+
+    const csvData = await this.customerService.exportToCSV(filters);
+
+    const fileName = `clientes-${new Date().toISOString().split('T')[0]}.csv`;
+
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
+    res.setHeader('Cache-Control', 'no-cache');
+
+    return res.send(csvData);
   }
 }
