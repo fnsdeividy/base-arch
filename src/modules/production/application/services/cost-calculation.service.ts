@@ -66,7 +66,8 @@ export class CostCalculationService {
     const bom = await this.materialsService.findProductBom(productId);
 
     if (bom.length === 0) {
-      throw new BadRequestException(`No recipe found for product ${productId}`);
+      // Return empty array instead of throwing error - allows creating orders without recipes
+      return [];
     }
 
     // Get product info
@@ -123,6 +124,11 @@ export class CostCalculationService {
     consumptions: MaterialConsumption[]
   ): Promise<BatchAllocation[]> {
     const allocations: BatchAllocation[] = [];
+
+    // If no consumptions (no recipe), return empty allocations
+    if (consumptions.length === 0) {
+      return allocations;
+    }
 
     for (const consumption of consumptions) {
       // Get available batches ordered by received date (FIFO)
@@ -196,6 +202,11 @@ export class CostCalculationService {
     consumptions: MaterialConsumption[]
   ): Promise<BatchAllocation[]> {
     const allocations: BatchAllocation[] = [];
+
+    // If no consumptions (no recipe), return empty allocations
+    if (consumptions.length === 0) {
+      return allocations;
+    }
 
     for (const consumption of consumptions) {
       // Get all available batches
