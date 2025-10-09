@@ -224,6 +224,46 @@ export class MaterialsService {
     });
   }
 
+  async findMultipleProductsBom(productIds: string[]) {
+    // Filter valid UUIDs to avoid database errors
+    const validProductIds = productIds.filter(id => {
+      try {
+        // Simple UUID validation
+        return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+      } catch {
+        return false;
+      }
+    });
+
+    if (validProductIds.length === 0) {
+      return {};
+    }
+
+    const bomItems = await this.prisma.productBom.findMany({
+      where: { 
+        productId: { 
+          in: validProductIds 
+        } 
+      },
+      include: {
+        material: true,
+        product: true,
+      },
+      orderBy: { createdAt: 'asc' },
+    });
+
+    // Group by productId
+    const groupedBom = bomItems.reduce((acc, item) => {
+      if (!acc[item.productId]) {
+        acc[item.productId] = [];
+      }
+      acc[item.productId].push(item);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    return groupedBom;
+  }
+
   async createBomItem(data: CreateProductBomDto) {
     // Verify product exists
     const product = await this.prisma.product.findUnique({

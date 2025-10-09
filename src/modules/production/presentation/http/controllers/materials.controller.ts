@@ -118,6 +118,11 @@ export class BomController {
     return this.materialsService.findProductBom(productId);
   }
 
+  @Post('batch/products')
+  async findMultipleProductsBom(@Body() data: { productIds: string[] }) {
+    return this.materialsService.findMultipleProductsBom(data.productIds);
+  }
+
   @Post()
   async createBomItem(@Body() data: CreateProductBomDto) {
     return this.materialsService.createBomItem(data);
